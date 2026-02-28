@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  BUYER
+  SUPPLIER
+  ADMIN
+}
+
+enum RfqStatus {
+  OPEN
+  CLOSED
+  AWARDED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  role      Role     @default(BUYER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rfqs Rfq[]
+  bids Bid[]
+}
+
+model Rfq {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  budget      Decimal
+  status      RfqStatus @default(OPEN)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  buyerId String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+
+  bids Bid[]
+}
+
+model Bid {
+  id          String    @id @default(cuid())
+  amount      Decimal
+  coverLetter String
+  status      BidStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  rfqId String
+  rfq   Rfq    @relation(fields: [rfqId], references: [id])
+
+  supplierId String
+  supplier   User   @relation(fields: [supplierId], references: [id])
+}
