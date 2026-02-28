@@ -3,11 +3,12 @@ import prisma from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { CalendarIcon, DollarSign, PackageIcon, FileText, CheckCircle2 } from "lucide-react"
+import { CalendarIcon, DollarSign, Clock, CalendarDays, FileText, CheckCircle2, User, Building2, PackageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import BidForm from "./bid-form"
 import AcceptBidButton from "./accept-bid-button"
+import OfferAnalysis from "./offer-analysis"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -130,10 +131,16 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                 {/* --- BUYER VIEW: List of Bids --- */}
                 {role === 'BUYER' && (
                     <div className="space-y-6">
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <PackageIcon className="h-5 w-5 text-blue-600" />
-                            Ofertas Recibidas ({rfq.bids.length})
-                        </h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <PackageIcon className="h-5 w-5 text-blue-600" />
+                                Ofertas Recibidas ({rfq.bids.length})
+                            </h2>
+                        </div>
+
+                        {rfq.bids.length > 0 && rfq.status === 'OPEN' && (
+                            <OfferAnalysis rfqId={rfq.id} />
+                        )}
 
                         {rfq.bids.length === 0 ? (
                             <Card className="bg-transparent border-dashed border-2">
