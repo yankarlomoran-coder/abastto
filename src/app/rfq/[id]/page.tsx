@@ -9,6 +9,7 @@ import Link from "next/link"
 import BidForm from "./bid-form"
 import AcceptBidButton from "./accept-bid-button"
 import OfferAnalysis from "./offer-analysis"
+import QaSection from "./qa-section"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -23,10 +24,17 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
     const rfq = await prisma.rfq.findUnique({
         where: { id: resolvedParams.id },
         include: {
-            buyer: { select: { name: true, email: true } },
+            company: { select: { name: true, nit: true } },
+            items: true,
             bids: {
-                include: { supplier: { select: { name: true, email: true } } },
+                include: {
+                    company: { select: { name: true, nit: true } },
+                    items: { include: { rfqItem: true } }
+                },
                 orderBy: { amount: 'asc' }
+            },
+            questions: {
+                orderBy: { createdAt: 'asc' }
             }
         }
     })
@@ -35,8 +43,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
         notFound()
     }
 
-    // Security check: Only the owner Buyer or any Supplier can view this
-    if (role === 'BUYER' && rfq.buyerId !== userId) {
+    // Security check: Only the owner Company or any Supplier can view this
+    if (role === 'BUYER' && rfq.companyId !== session.user.companyId) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
                 <Card className="w-full max-w-md text-center">
@@ -49,8 +57,11 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
         )
     }
 
-    const hasSupplierBid = role === 'SUPPLIER' ? rfq.bids.some(b => b.supplierId === userId) : false
-    const supplierBid = role === 'SUPPLIER' ? rfq.bids.find(b => b.supplierId === userId) : null
+    const hasSupplierBid = role === 'SUPPLIER' ? rfq.bids.some(b => b.companyId === session.user.companyId) : false
+    const supplierBid = role === 'SUPPLIER' ? rfq.bids.find(b => b.companyId === session.user.companyId) : null
+
+    const isPastDeadline = new Date() > rfq.deadline
+    const effectiveStatus = rfq.status === 'OPEN' && isPastDeadline ? 'EVALUATING' : rfq.status
 
     return (
         <div className="min-h-screen bg-gray-50/50 p-6 sm:p-10">
@@ -75,9 +86,9 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                     {rfq.title}
                                 </CardTitle>
                             </div>
-                            <Badge variant={rfq.status === 'OPEN' ? 'default' : rfq.status === 'CLOSED' ? 'secondary' : 'default'}
-                                className={rfq.status === 'OPEN' ? 'bg-green-600' : ''}>
-                                {rfq.status === 'OPEN' ? 'ABIERTA' : rfq.status === 'CLOSED' ? 'CERRADA' : rfq.status}
+                            <Badge variant={effectiveStatus === 'OPEN' ? 'default' : effectiveStatus === 'EVALUATING' ? 'outline' : 'secondary'}
+                                className={effectiveStatus === 'OPEN' ? 'bg-green-600' : effectiveStatus === 'EVALUATING' ? 'border-amber-500 text-amber-600' : ''}>
+                                {effectiveStatus === 'OPEN' ? 'ABIERTA' : effectiveStatus === 'EVALUATING' ? 'EN EVALUACIÓN' : effectiveStatus === 'CLOSED' ? 'CERRADA' : rfq.status}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -100,7 +111,6 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             <div>
                                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Presupuesto Estimado</p>
                                 <p className="text-2xl font-bold text-slate-900 flex items-center gap-1">
-                                    <DollarSign className="h-6 w-6 text-emerald-500" />
                                     Q {Number(rfq.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </p>
                             </div>
@@ -114,19 +124,37 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             </div>
 
                             <div className="pt-4 border-t border-slate-200">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Comprador</p>
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Fecha Límite (Cierre)</p>
+                                <p className={`text-sm font-bold flex items-center gap-2 ${isPastDeadline ? 'text-red-600' : 'text-slate-900'}`}>
+                                    <Clock className={`h-4 w-4 ${isPastDeadline ? 'text-red-500' : 'text-slate-400'}`} />
+                                    {new Date(rfq.deadline).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short', hour12: true })}
+                                </p>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-200">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Empresa Compradora</p>
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
-                                        {rfq.buyer.name?.[0]?.toUpperCase() || 'C'}
+                                        {rfq.company?.name?.[0]?.toUpperCase() || 'E'}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900 line-clamp-1">{rfq.buyer.name || 'Cliente Verificado'}</p>
+                                        <p className="text-sm font-bold text-slate-900 line-clamp-1">{rfq.company?.name || 'Empresa Verificada'}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* FORUM Q&A */}
+                <QaSection
+                    rfqId={rfq.id}
+                    questions={rfq.questions}
+                    userRole={role}
+                    userCompanyId={session.user.companyId || ''}
+                    isOwner={role === 'BUYER' && rfq.companyId === session.user.companyId}
+                    isActive={!isPastDeadline && rfq.status === 'OPEN'}
+                />
 
                 {/* --- BUYER VIEW: List of Bids --- */}
                 {role === 'BUYER' && (
@@ -138,7 +166,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             </h2>
                         </div>
 
-                        {rfq.bids.length > 0 && rfq.status === 'OPEN' && (
+                        {rfq.bids.length > 0 && effectiveStatus === 'EVALUATING' && (
                             <OfferAnalysis rfqId={rfq.id} />
                         )}
 
@@ -146,6 +174,17 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             <Card className="bg-transparent border-dashed border-2">
                                 <CardContent className="py-12 text-center">
                                     <p className="text-slate-500">Aún no hay ofertas para esta solicitud.</p>
+                                </CardContent>
+                            </Card>
+                        ) : !isPastDeadline ? (
+                            <Card className="bg-slate-50 border-dashed border-2">
+                                <CardContent className="py-12 text-center">
+                                    <Clock className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Sobres Cerrados</h3>
+                                    <p className="text-slate-500">
+                                        Hay <strong>{rfq.bids.length} oferta(s)</strong> aseguradas.<br />
+                                        Por transparencia, los detalles y precios exactos serán revelados cuando finalice el tiempo límite el {new Date(rfq.deadline).toLocaleString('es-GT', { dateStyle: 'medium', timeStyle: 'short', hour12: true })}.
+                                    </p>
                                 </CardContent>
                             </Card>
                         ) : (
@@ -156,7 +195,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <CardTitle className="text-lg font-bold text-slate-900">
-                                                        {bid.supplier.name || 'Proveedor Anónimo'}
+                                                        {bid.company?.name || 'Empresa Proveedora'}
                                                     </CardTitle>
                                                     <CardDescription>{new Date(bid.createdAt).toLocaleDateString()}</CardDescription>
                                                 </div>
@@ -169,14 +208,45 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                             </div>
                                         </CardHeader>
                                         <CardContent className="pt-4 space-y-4">
+                                            {bid.items && bid.items.length > 0 && (
+                                                <div className="space-y-2">
+                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desglose Económico</p>
+                                                    <div className="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                        {bid.items.map((bItem: any) => (
+                                                            <div key={bItem.id} className="flex justify-between items-center text-sm">
+                                                                <div>
+                                                                    <p className="font-semibold text-slate-800">{bItem.rfqItem?.name}</p>
+                                                                    {bItem.remarks && <p className="text-xs text-slate-500 italic">Nota: {bItem.remarks}</p>}
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="font-medium text-slate-900">Q {Number(bItem.unitPrice).toFixed(2)} c/u</p>
+                                                                    <p className="text-xs text-slate-500">Subtotal: Q {Number(bItem.totalPrice).toFixed(2)}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Plazo de Entrega</p>
+                                                    <p className="text-sm text-slate-800 font-medium">{bid.deliveryLeadTime || 'No especificado'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Validez Oferta</p>
+                                                    <p className="text-sm text-slate-800 font-medium">{bid.validityDays ? `${bid.validityDays} días` : 'No especificada'}</p>
+                                                </div>
+                                            </div>
+
                                             <div>
-                                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Mensaje / Condiciones</p>
+                                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Mensaje / Condiciones Generales</p>
                                                 <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100">
                                                     {bid.coverLetter}
                                                 </p>
                                             </div>
 
-                                            {rfq.status === 'OPEN' && (
+                                            {effectiveStatus === 'EVALUATING' && (
                                                 <div className="pt-4 flex justify-end">
                                                     <AcceptBidButton bidId={bid.id} rfqId={rfq.id} amount={Number(bid.amount)} />
                                                 </div>
@@ -196,10 +266,10 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             Tu Interacción
                         </h2>
 
-                        {rfq.status !== 'OPEN' && !hasSupplierBid ? (
+                        {effectiveStatus !== 'OPEN' && !hasSupplierBid ? (
                             <Card className="bg-slate-50">
                                 <CardContent className="py-8 text-center">
-                                    <p className="text-slate-500 font-medium">Esta solicitud ya ha sido cerrada por el comprador.</p>
+                                    <p className="text-slate-500 font-medium">El tiempo de recepción de ofertas para esta solicitud ha expirado.</p>
                                 </CardContent>
                             </Card>
                         ) : hasSupplierBid && supplierBid ? (
@@ -227,8 +297,39 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                             <p className="text-lg font-medium text-slate-900">{new Date(supplierBid.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
+                                    {supplierBid.items && supplierBid.items.length > 0 && (
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-2">Desglose Económico</p>
+                                            <div className="space-y-2 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                {supplierBid.items.map((bItem: any) => (
+                                                    <div key={bItem.id} className="flex justify-between items-center text-sm border-b border-slate-200 last:border-0 pb-2 last:pb-0">
+                                                        <div>
+                                                            <p className="font-semibold text-slate-800">{bItem.rfqItem?.name}</p>
+                                                            {bItem.remarks && <p className="text-xs text-slate-500 italic">Nota: {bItem.remarks}</p>}
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-medium text-slate-900">Q {Number(bItem.unitPrice).toFixed(2)} c/u</p>
+                                                            <p className="text-xs text-emerald-600 font-semibold">Subtotal: Q {Number(bItem.totalPrice).toFixed(2)}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-1">Plazo de Entrega</p>
+                                            <p className="text-sm font-medium text-slate-900">{supplierBid.deliveryLeadTime || 'No especificado'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-1">Días de Validez</p>
+                                            <p className="text-sm font-medium text-slate-900">{supplierBid.validityDays || 'No especificada'}</p>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <p className="text-sm text-slate-500 mb-2">Mensaje / Propuesta</p>
+                                        <p className="text-sm text-slate-500 mb-2">Condiciones Generales</p>
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm whitespace-pre-wrap">
                                             {supplierBid.coverLetter}
                                         </div>
@@ -236,7 +337,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                 </CardContent>
                             </Card>
                         ) : (
-                            <BidForm rfqId={rfq.id} />
+                            <BidForm rfqId={rfq.id} rfqItems={rfq.items} />
                         )}
                     </div>
                 )}

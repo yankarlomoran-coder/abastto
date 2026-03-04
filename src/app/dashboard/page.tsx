@@ -20,13 +20,13 @@ export default async function DashboardPage() {
 
     if (role === 'BUYER') {
         rfqs = await prisma.rfq.findMany({
-            where: { buyerId: id },
+            where: { companyId: session.user.companyId as string },
             orderBy: { createdAt: 'desc' }
         })
     } else {
         rfqs = await prisma.rfq.findMany({
             where: { status: 'OPEN' },
-            include: { buyer: { select: { name: true } } },
+            include: { company: { select: { name: true } } },
             orderBy: { createdAt: 'desc' }
         })
     }
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
                         <form
                             action={async () => {
                                 "use server"
-                                await signOut()
+                                await signOut({ redirectTo: '/login' })
                             }}
                         >
                             <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
@@ -101,58 +101,75 @@ export default async function DashboardPage() {
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {rfqs.map((rfq) => (
-                                <Link key={rfq.id} href={`/rfq/${rfq.id}`} className="block">
-                                    <Card className="h-full hover:shadow-md transition-shadow duration-200 group cursor-pointer hover:border-blue-200">
-                                        <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start gap-4">
-                                                <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
-                                                    {rfq.title}
-                                                </CardTitle>
-                                                <Badge variant={rfq.status === 'OPEN' ? 'default' : 'secondary'} className={rfq.status === 'OPEN' ? 'bg-green-600 hover:bg-green-700' : ''}>
-                                                    {rfq.status === 'OPEN' ? 'ABIERTA' : rfq.status}
-                                                </Badge>
-                                            </div>
-                                            <CardDescription className="line-clamp-2 pt-1">
-                                                {rfq.description}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-3 pt-2 text-sm text-gray-600">
-                                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                                    <div className="flex items-center gap-2">
-                                                        <DollarSign className="h-4 w-4 text-gray-400" />
-                                                        <span>Presupuesto</span>
-                                                    </div>
-                                                    <span className="font-bold text-gray-900">Q {Number(rfq.budget).toFixed(2)}</span>
-                                                </div>
+                            {rfqs.map((rfq) => {
+                                const isPastDeadline = rfq.deadline ? new Date() > rfq.deadline : false;
+                                const effectiveStatus = rfq.status === 'OPEN' && isPastDeadline ? 'EVALUATING' : rfq.status;
 
-                                                <div className="flex items-center justify-between px-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <Clock className="h-4 w-4 text-gray-400" />
-                                                        <span>Publicado</span>
-                                                    </div>
-                                                    <span>{new Date(rfq.createdAt).toLocaleDateString()}</span>
+                                return (
+                                    <Link key={rfq.id} href={`/rfq/${rfq.id}`} className="block">
+                                        <Card className="h-full hover:shadow-md transition-shadow duration-200 group cursor-pointer hover:border-blue-200">
+                                            <CardHeader className="pb-3">
+                                                <div className="flex justify-between items-start gap-4">
+                                                    <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                                        {rfq.title}
+                                                    </CardTitle>
+                                                    <Badge variant={effectiveStatus === 'OPEN' ? 'default' : effectiveStatus === 'EVALUATING' ? 'outline' : 'secondary'} className={effectiveStatus === 'OPEN' ? 'bg-green-600 hover:bg-green-700' : effectiveStatus === 'EVALUATING' ? 'border-amber-500 text-amber-600' : ''}>
+                                                        {effectiveStatus === 'OPEN' ? 'ABIERTA' : effectiveStatus === 'EVALUATING' ? 'EN EVALUACIÓN' : effectiveStatus === 'CLOSED' ? 'CERRADA' : rfq.status}
+                                                    </Badge>
                                                 </div>
-
-                                                {role === 'SUPPLIER' && (
-                                                    <div className="flex items-center justify-between px-2 pt-2 border-t border-gray-100 mt-2">
-                                                        <span className="text-xs text-gray-500 uppercase font-medium tracking-wide">Comprador</span>
-                                                        <span className="font-medium text-blue-900 truncate max-w-[120px]">
-                                                            {(rfq as any).buyer?.name || 'Cliente Verificado'}
-                                                        </span>
+                                                <CardDescription className="line-clamp-2 pt-1">
+                                                    {rfq.description}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-3 pt-2 text-sm text-gray-600">
+                                                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-semibold px-1 text-gray-400">Q</span>
+                                                            <span>Presupuesto</span>
+                                                        </div>
+                                                        <span className="font-bold text-gray-900">Q {Number(rfq.budget).toFixed(2)}</span>
                                                     </div>
-                                                )}
-                                            </div>
-                                            <div className="mt-5">
-                                                <Button variant="outline" className="w-full group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-200 transition-all">
-                                                    Ver Detalles
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
-                            ))}
+
+                                                    <div className="flex items-center justify-between px-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="h-4 w-4 text-gray-400" />
+                                                            <span>Publicado</span>
+                                                        </div>
+                                                        <span>{new Date(rfq.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+
+                                                    {rfq.deadline && (
+                                                        <div className="flex items-center justify-between px-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Clock className={`h-4 w-4 ${isPastDeadline ? 'text-red-400' : 'text-blue-400'}`} />
+                                                                <span className={isPastDeadline ? 'text-red-600 font-medium' : ''}>Cierre</span>
+                                                            </div>
+                                                            <span className={isPastDeadline ? 'text-red-600 font-medium' : ''}>
+                                                                {new Date(rfq.deadline).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short', hour12: true })}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {role === 'SUPPLIER' && (
+                                                        <div className="flex items-center justify-between px-2 pt-2 border-t border-gray-100 mt-2">
+                                                            <span className="text-xs text-gray-500 uppercase font-medium tracking-wide">Empresa Compradora</span>
+                                                            <span className="font-medium text-blue-900 truncate max-w-[120px]">
+                                                                {(rfq as any).company?.name || 'Empresa Verificada'}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mt-5">
+                                                    <Button variant="outline" className="w-full group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-200 transition-all">
+                                                        Ver Detalles
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                )
+                            })}
                         </div>
                     )}
                 </div>

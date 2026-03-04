@@ -14,8 +14,55 @@ enum Role {
   ADMIN
 }
 
+enum IndustrySector {
+  AGRICULTURA
+  CONSTRUCCION
+  ESTADO_GOBIERNO
+  MANUFACTURA
+  MEDICAL_SALUD
+  RETAIL_COMERCIO
+  SERVICIOS_PROFESIONALES
+  TECNOLOGIA
+  TRANSPORTE_LOGISTICA
+  OTRO
+}
+
+// Departamentos de Guatemala
+enum Location {
+  ALTA_VERAPAZ
+  BAJA_VERAPAZ
+  CHIMALTENANGO
+  CHIQUIMULA
+  EL_PROGRESO
+  ESCUINTLA
+  GUATEMALA
+  HUEHUETENANGO
+  IZABAL
+  JALAPA
+  JUTIAPA
+  PETEN
+  QUETZALTENANGO
+  QUICHE
+  RETALHULEU
+  SACATEPEQUEZ
+  SAN_MARCOS
+  SANTA_ROSA
+  SOLOLA
+  SUCHITEPEQUEZ
+  TOTONICAPAN
+  ZACAPA
+}
+
+enum CompanyRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
 enum RfqStatus {
   OPEN
+  EVALUATING
   CLOSED
   AWARDED
 }
@@ -26,45 +73,140 @@ enum BidStatus {
   REJECTED
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String?
-  name      String?
-  role      Role     @default(BUYER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum PaymentTerms {
+  CASH
+  NET_30
+  NET_60
+}
 
-  rfqs Rfq[]
-  bids Bid[]
+enum RfqCategory {
+  TECH
+  OFFICE
+  CONSTRUCTION
+  SERVICES
+  OTHER
+}
+
+model Company {
+  id         String         @id @default(cuid())
+  nit        String         @unique
+  name       String
+  industry   IndustrySector
+  department Location
+  isVerified Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  users       User[]
+  rfqs        Rfq[]
+  bids        Bid[]
+  invitations Invitation[]
+  questions   Question[]
+}
+
+model User {
+  id          String      @id @default(cuid())
+  email       String      @unique
+  password    String?
+  name        String?
+  role        Role        @default(BUYER)
+  companyRole CompanyRole @default(OWNER)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 }
 
 model Rfq {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  budget      Decimal
-  status      RfqStatus @default(OPEN)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String        @id @default(cuid())
+  title            String
+  description      String
+  budget           Decimal
+  status           RfqStatus     @default(OPEN)
+  deadline         DateTime
+  deliveryLocation String?
+  paymentTerms     PaymentTerms?
+  category         RfqCategory?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  buyerId String
-  buyer   User   @relation(fields: [buyerId], references: [id])
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
 
-  bids Bid[]
+  bids      Bid[]
+  items     RfqItem[]
+  questions Question[]
+}
+
+model RfqItem {
+  id       String @id @default(cuid())
+  name     String
+  quantity Int
+  unit     String
+
+  rfqId String
+  rfq   Rfq    @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  bidItems BidItem[]
 }
 
 model Bid {
-  id          String    @id @default(cuid())
-  amount      Decimal
-  coverLetter String
-  status      BidStatus @default(PENDING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  amount           Decimal
+  coverLetter      String
+  status           BidStatus @default(PENDING)
+  validityDays     Int?
+  deliveryLeadTime String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   rfqId String
-  rfq   Rfq    @relation(fields: [rfqId], references: [id])
+  rfq   Rfq    @relation(fields: [rfqId], references: [id], onDelete: Cascade)
 
-  supplierId String
-  supplier   User   @relation(fields: [supplierId], references: [id])
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  items BidItem[]
+}
+
+model BidItem {
+  id         String  @id @default(cuid())
+  unitPrice  Decimal
+  totalPrice Decimal
+  remarks    String?
+
+  bidId String
+  bid   Bid    @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  rfqItemId String
+  rfqItem   RfqItem @relation(fields: [rfqItemId], references: [id], onDelete: Cascade)
+}
+
+model Invitation {
+  id        String      @id @default(uuid())
+  email     String
+  companyId String
+  company   Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role      CompanyRole
+  token     String      @unique
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([email, companyId])
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  content   String
+  answer    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rfqId     String
+  rfq       Rfq      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  companyId String // The company that asked the question
+  company   Company  @relation(fields: [companyId], references: [id])
 }

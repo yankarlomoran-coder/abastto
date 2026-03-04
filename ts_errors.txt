@@ -1,0 +1,2 @@
+src/app/rfq/[id]/bid-form.tsx(13,29): error TS2724: '"lucide-react"' has no exported member named 'PackageBox'. Did you mean 'PackageX'?
+src/app/rfq/[id]/bid-form.tsx(175,91): error TS2367: This comparison appears to be unintentional because the types '"error"' and '"success"' have no overlap.

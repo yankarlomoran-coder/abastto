@@ -18,7 +18,7 @@ async function getUser(email: string) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: PrismaAdapter(prisma),
+    adapter: PrismaAdapter(prisma) as any,
     session: { strategy: "jwt" }, // Credentials provider requires JWT strategy
     pages: {
         signIn: "/login",
@@ -39,7 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     if (!user.password) return null
 
                     const passwordsMatch = await bcrypt.compare(password, user.password)
-                    if (passwordsMatch) return user
+                    if (passwordsMatch) return user as any
                 }
 
                 console.log("Invalid credentials")
@@ -48,18 +48,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: { token: any, user?: any }) {
             if (user) {
-                token.role = user.role as any
-                token.id = user.id as string
+                token.role = user.role
+                token.id = user.id
+                token.companyId = user.companyId
+                token.companyRole = user.companyRole
             }
             return token
         },
-        async session({ session, token }) {
+        async session({ session, token }: { session: any, token: any }) {
             if (session.user && token) {
-                session.user.role = token.role as any
-                session.user.id = token.id as string
-                // session.user.image = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+                session.user.role = token.role
+                session.user.id = token.id
+                session.user.companyId = token.companyId
+                session.user.companyRole = token.companyRole
             }
             return session
         },

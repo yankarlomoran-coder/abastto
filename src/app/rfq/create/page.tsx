@@ -1,96 +1,225 @@
 'use client'
 
-import { useActionState } from 'react'
-import { createRfq, State } from '@/actions/rfq'
+import { useState } from 'react'
+import { useForm, useFieldArray } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { createRfq } from '@/actions/rfq'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Plus, Trash2 } from 'lucide-react'
+import { PaymentTerms, RfqCategory } from '@prisma/client'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
+const RfqItemSchema = z.object({
+    name: z.string().min(2, { message: 'El nombre del producto es obligatorio.' }),
+    quantity: z.coerce.number().positive({ message: 'La cantidad debe ser mayor a 0.' }),
+    unit: z.string().min(1, { message: 'Especifica la unidad (ej. piezas, cajas).' })
+})
+
+const RfqFormSchema = z.object({
+    title: z.string().min(5, { message: 'El título debe tener al menos 5 caracteres.' }),
+    description: z.string().min(20, { message: 'La descripción debe ser más detallada (min 20 caracteres).' }),
+    budget: z.coerce.number().positive({ message: 'El presupuesto debe ser un número positivo.' }),
+    deadline: z.string().min(1, { message: 'La fecha límite es obligatoria.' }).refine((val) => new Date(val) > new Date(), { message: 'La fecha límite debe ser en el futuro.' }),
+    deliveryLocation: z.string().optional(),
+    paymentTerms: z.nativeEnum(PaymentTerms).optional(),
+    category: z.nativeEnum(RfqCategory).optional(),
+    items: z.array(RfqItemSchema).min(1, { message: 'Debes incluir al menos un producto a cotizar.' })
+})
+
+type RfqFormValues = z.infer<typeof RfqFormSchema>
 
 export default function CreateRfqPage() {
-    const initialState: State = { message: null, errors: {} }
-    const [state, formAction, isPending] = useActionState(createRfq, initialState)
+    const [isPending, setIsPending] = useState(false)
+    const [serverError, setServerError] = useState<string | null>(null)
+
+    const form = useForm<RfqFormValues>({
+        resolver: zodResolver(RfqFormSchema) as any,
+        defaultValues: {
+            title: '',
+            description: '',
+            budget: 0,
+            deadline: '',
+            deliveryLocation: '',
+            items: [{ name: '', quantity: 1, unit: 'Piezas' }]
+        }
+    })
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control as any,
+        name: "items"
+    })
+
+    async function onSubmit(data: RfqFormValues) {
+        setIsPending(true)
+        setServerError(null)
+
+        const parsedData = {
+            ...data,
+            deadline: new Date(data.deadline) // Server expects standard Date input for zod parser
+        }
+
+        const result = await createRfq(undefined, parsedData)
+
+        if (result?.message) {
+            setServerError(result.message)
+        }
+
+        setIsPending(false)
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-2xl">Nueva Solicitud de Cotización (RFQ)</CardTitle>
                         <CardDescription>
-                            Describe lo que necesitas y recibe ofertas de proveedores verificados.
+                            Describe detalladamente los productos y condiciones para recibir ofertas de proveedores verificados.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form action={formAction} className="space-y-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="title">Título de la Solicitud</Label>
-                                <Input
-                                    id="title"
-                                    name="title"
-                                    placeholder="Ej: Lote de 500 Sillas de Oficina Ergonómicas"
-                                    required
-                                />
-                                <div id="title-error" aria-live="polite" aria-atomic="true">
-                                    {state.errors?.title &&
-                                        state.errors.title.map((error: string) => (
-                                            <p className="mt-2 text-sm text-red-500" key={error}>
-                                                {error}
-                                            </p>
-                                        ))}
+                        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
+
+                            {/* Información General */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-medium border-b pb-2">1. Información General</h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2 md:col-span-2">
+                                        <Label htmlFor="title">Título de la Solicitud</Label>
+                                        <Input id="title" placeholder="Ej: Lote de 500 Sillas de Oficina Ergonómicas" {...form.register('title')} />
+                                        {form.formState.errors.title && <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-2 md:col-span-2">
+                                        <Label htmlFor="description">Descripción Adicional (Opcional)</Label>
+                                        <Textarea id="description" placeholder="Instrucciones especiales, contexto del proyecto, etc." className="min-h-[100px]" {...form.register('description')} />
+                                        {form.formState.errors.description && <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="category">Categoría</Label>
+                                        <Select onValueChange={(val) => form.setValue('category', val as RfqCategory)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona una categoría" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="TECH">Tecnología y Equipo</SelectItem>
+                                                <SelectItem value="OFFICE">Suministros de Oficina</SelectItem>
+                                                <SelectItem value="CONSTRUCTION">Construcción y Materiales</SelectItem>
+                                                <SelectItem value="SERVICES">Servicios Profesionales</SelectItem>
+                                                <SelectItem value="OTHER">Otro</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {form.formState.errors.category && <p className="text-sm text-red-500">{form.formState.errors.category.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="budget">Presupuesto Estimado Máximo (Q)</Label>
+                                        <Input id="budget" type="number" step="0.01" {...form.register('budget')} />
+                                        {form.formState.errors.budget && <p className="text-sm text-red-500">{form.formState.errors.budget.message}</p>}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Descripción Detallada</Label>
-                                <Textarea
-                                    id="description"
-                                    name="description"
-                                    placeholder="Especificaciones técnicas, cantidad, plazos de entrega, etc."
-                                    className="min-h-[150px]"
-                                    required
-                                />
-                                <div id="description-error" aria-live="polite" aria-atomic="true">
-                                    {state.errors?.description &&
-                                        state.errors.description.map((error: string) => (
-                                            <p className="mt-2 text-sm text-red-500" key={error}>
-                                                {error}
-                                            </p>
-                                        ))}
+                            {/* Condiciones Logistics */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-medium border-b pb-2">2. Condiciones Comerciales</h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="deadline">Fecha y Hora de Cierre</Label>
+                                        <Input id="deadline" type="datetime-local" {...form.register('deadline')} />
+                                        {form.formState.errors.deadline && <p className="text-sm text-red-500">{form.formState.errors.deadline.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="deliveryLocation">Ubicación de Entrega</Label>
+                                        <Input id="deliveryLocation" placeholder="Ej: Bodega Central Zona 12" {...form.register('deliveryLocation')} />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="paymentTerms">Condiciones de Pago Requeridas</Label>
+                                        <Select onValueChange={(val) => form.setValue('paymentTerms', val as PaymentTerms)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="CASH">Al Contado / Contra Entrega</SelectItem>
+                                                <SelectItem value="NET_30">Crédito a 30 Días</SelectItem>
+                                                <SelectItem value="NET_60">Crédito a 60 Días</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="budget">Presupuesto Estimado (Quetzales)</Label>
-                                <Input
-                                    id="budget"
-                                    name="budget"
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    required
-                                />
-                                <div id="budget-error" aria-live="polite" aria-atomic="true">
-                                    {state.errors?.budget &&
-                                        state.errors.budget.map((error: string) => (
-                                            <p className="mt-2 text-sm text-red-500" key={error}>
-                                                {error}
-                                            </p>
-                                        ))}
+                            {/* Line Items */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between border-b pb-2">
+                                    <h3 className="text-lg font-medium">3. Productos y Cantidades Requeridas</h3>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', quantity: 1, unit: 'Piezas' })}>
+                                        <Plus className="h-4 w-4 mr-1" /> Agregar Ítem
+                                    </Button>
+                                </div>
+                                {form.formState.errors.items?.message && (
+                                    <p className="text-sm text-red-500">{form.formState.errors.items.message as string}</p>
+                                )}
+
+                                <div className="space-y-3">
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="flex items-start gap-4 p-4 bg-slate-50 border rounded-lg">
+                                            <div className="flex-1 space-y-2">
+                                                <Label>Nombre del Producto / Descripción</Label>
+                                                <Input placeholder="Ej: Mouse Inalámbrico Logitech M280" {...form.register(`items.${index}.name` as const)} />
+                                                {form.formState.errors.items?.[index]?.name && <p className="text-xs text-red-500">{form.formState.errors.items[index].name.message}</p>}
+                                            </div>
+                                            <div className="w-24 space-y-2">
+                                                <Label>Cantidad</Label>
+                                                <Input type="number" {...form.register(`items.${index}.quantity` as const)} />
+                                                {form.formState.errors.items?.[index]?.quantity && <p className="text-xs text-red-500">{form.formState.errors.items[index].quantity.message}</p>}
+                                            </div>
+                                            <div className="w-32 space-y-2">
+                                                <Label>Unidad</Label>
+                                                <Input placeholder="Cajas, pares..." {...form.register(`items.${index}.unit` as const)} />
+                                                {form.formState.errors.items?.[index]?.unit && <p className="text-xs text-red-500">{form.formState.errors.items[index].unit.message}</p>}
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="mt-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => remove(index)}
+                                                disabled={fields.length === 1}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            {state.message && (
+                            {serverError && (
                                 <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-md">
                                     <AlertCircle className="h-4 w-4" />
-                                    <p>{state.message}</p>
+                                    <p>{serverError}</p>
                                 </div>
                             )}
 
                             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
-                                {isPending ? 'Creando...' : 'Publicar Solicitud'}
+                                {isPending ? 'Creando Solicitud...' : 'Publicar Solicitud de Cotización'}
                             </Button>
                         </form>
                     </CardContent>

@@ -5,53 +5,85 @@ import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
+const BidItemSchema = z.object({
+    rfqItemId: z.string(),
+    unitPrice: z.coerce.number().min(0, { message: 'El precio unitario no puede ser negativo.' }),
+    remarks: z.string().optional()
+})
+
 const BidSchema = z.object({
     rfqId: z.string(),
-    amount: z.coerce.number().positive({ message: 'La oferta debe ser un número positivo.' }),
-    deliveryTime: z.string().min(2, { message: 'Especifica el tiempo de entrega (ej. 5 días).' }),
+    validityDays: z.coerce.number().positive({ message: 'Días de validez requeridos.' }),
+    deliveryLeadTime: z.string().min(2, { message: 'Especifica el tiempo de entrega (ej. 5 días).' }),
     proposal: z.string().min(10, { message: 'La propuesta debe tener al menos 10 caracteres.' }),
+    items: z.array(BidItemSchema).min(1, { message: 'Debes cotizar al menos un producto.' })
 })
 
 export type BidState = {
     errors?: {
-        amount?: string[]
-        deliveryTime?: string[]
+        validityDays?: string[]
+        deliveryLeadTime?: string[]
         proposal?: string[]
         rfqId?: string[]
+        items?: string[]
     }
     message?: string | null
 }
 
-export async function createBid(prevState: BidState | undefined, formData: FormData) {
+export async function createBid(prevState: BidState | undefined, data: any) {
     const session = await auth()
 
-    if (!session?.user?.id || session.user.role !== 'SUPPLIER') {
-        return { message: 'Acceso denegado. Solo proveedores pueden enviar ofertas.' }
+    if (!session?.user?.companyId || session.user.role !== 'SUPPLIER') {
+        return { message: 'Acceso denegado. Solo proveedores verificados pueden enviar ofertas.' }
     }
 
-    const validatedFields = BidSchema.safeParse({
-        rfqId: formData.get('rfqId'),
-        amount: formData.get('amount'),
-        deliveryTime: formData.get('deliveryTime'),
-        proposal: formData.get('proposal'),
-    })
+    const validatedFields = BidSchema.safeParse(data)
 
     if (!validatedFields.success) {
         return {
             errors: validatedFields.error.flatten().fieldErrors,
-            message: 'Faltan campos o son inválidos.',
+            message: 'Faltan campos o son inválidos en la cotización.',
         }
     }
 
-    const { rfqId, amount, deliveryTime, proposal } = validatedFields.data
-    const coverLetter = `Tiempo de entrega: ${deliveryTime}\n\nPropuesta: ${proposal}`
+    const { rfqId, validityDays, deliveryLeadTime, proposal, items } = validatedFields.data
+    const coverLetter = proposal // Simplify as the other fields are now native
+
+    // Find the original RFQ to cross-reference items and quantities
+    const rfq = await prisma.rfq.findUnique({
+        where: { id: rfqId },
+        include: { items: true }
+    })
+
+    if (!rfq) return { message: 'Solicitud no encontrada.' }
+    if (new Date() > rfq.deadline) return { message: 'La fecha límite de esta solicitud ya expiró.' }
+
+    // Calculate total amounts based on verified RFQ quantities
+    let totalAmount = 0
+    const processedBidItems = items.map(bidItem => {
+        const rfqItem = rfq.items.find(i => i.id === bidItem.rfqItemId)
+        const quantity = rfqItem ? rfqItem.quantity : 1
+        const totalPrice = bidItem.unitPrice * quantity
+        totalAmount += totalPrice
+
+        return {
+            rfqItemId: bidItem.rfqItemId,
+            unitPrice: bidItem.unitPrice,
+            totalPrice,
+            remarks: bidItem.remarks
+        }
+    })
 
     try {
-        // Check if supplier already bid on this RFQ
+        const rfq = await prisma.rfq.findUnique({ where: { id: rfqId } })
+        if (!rfq) return { message: 'Solicitud no encontrada.' }
+        if (new Date() > rfq.deadline) return { message: 'La fecha límite de esta solicitud ya expiró.' }
+
+        // Check if supplier's company already bid on this RFQ
         const existingBid = await prisma.bid.findFirst({
             where: {
                 rfqId: rfqId,
-                supplierId: session.user.id
+                companyId: session.user.companyId
             }
         })
 
@@ -62,10 +94,15 @@ export async function createBid(prevState: BidState | undefined, formData: FormD
         await prisma.bid.create({
             data: {
                 rfqId,
-                supplierId: session.user.id,
-                amount,
+                companyId: session.user.companyId,
+                amount: totalAmount,
+                validityDays,
+                deliveryLeadTime,
                 coverLetter,
                 status: 'PENDING',
+                items: {
+                    create: processedBidItems
+                }
             },
         })
 
@@ -88,10 +125,13 @@ export async function acceptBid(bidId: string, rfqId: string) {
     }
 
     try {
-        // Verify RFQ belongs to the buyer
+        // Verify RFQ belongs to the buyer's company and deadline has passed
         const rfq = await prisma.rfq.findUnique({ where: { id: rfqId } })
-        if (rfq?.buyerId !== session.user.id) {
-            return { success: false, message: 'No eres el dueño de esta solicitud.' }
+        if (rfq?.companyId !== session.user.companyId) {
+            return { success: false, message: 'Tu empresa no es dueña de esta solicitud.' }
+        }
+        if (new Date() < rfq.deadline!) {
+            return { success: false, message: 'No puedes aceptar ofertas antes de la fecha límite.' }
         }
 
         // Use transaction to ensure data consistency
