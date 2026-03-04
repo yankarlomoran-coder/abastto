@@ -5,6 +5,8 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 
+import { authConfig } from "./auth.config"
+
 async function getUser(email: string) {
     try {
         const user = await prisma.user.findUnique({
@@ -18,11 +20,9 @@ async function getUser(email: string) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    ...authConfig,
     adapter: PrismaAdapter(prisma) as any,
     session: { strategy: "jwt" }, // Credentials provider requires JWT strategy
-    pages: {
-        signIn: "/login",
-    },
     providers: [
         Credentials({
             async authorize(credentials) {
@@ -47,24 +47,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
         }),
     ],
-    callbacks: {
-        async jwt({ token, user }: { token: any, user?: any }) {
-            if (user) {
-                token.role = user.role
-                token.id = user.id
-                token.companyId = user.companyId
-                token.companyRole = user.companyRole
-            }
-            return token
-        },
-        async session({ session, token }: { session: any, token: any }) {
-            if (session.user && token) {
-                session.user.role = token.role
-                session.user.id = token.id
-                session.user.companyId = token.companyId
-                session.user.companyRole = token.companyRole
-            }
-            return session
-        },
-    },
 })
