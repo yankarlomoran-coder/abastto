@@ -11,6 +11,8 @@ import AcceptBidButton from "./accept-bid-button"
 import OfferAnalysis from "./offer-analysis"
 import QaSection from "./qa-section"
 import { PoDownloadButton } from "@/components/pdf/po-download-button"
+import ReviewForm from "./review-form"
+import { TrustScoreBadge } from "@/components/trust-score-badge"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -36,6 +38,9 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
             },
             questions: {
                 orderBy: { createdAt: 'asc' }
+            },
+            reviews: {
+                where: { authorCompanyId: session.user.companyId || '' } // Solo traemos la del usuario actual
             }
         }
     })
@@ -63,6 +68,9 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
 
     const isPastDeadline = new Date() > rfq.deadline
     const effectiveStatus = rfq.status === 'OPEN' && isPastDeadline ? 'EVALUATING' : rfq.status
+
+    const hasReviewed = rfq.reviews.length > 0
+    const acceptedBid = rfq.bids.find(b => b.status === 'ACCEPTED')
 
     return (
         <div className="min-h-screen bg-gray-50/50 p-6 sm:p-10">
@@ -135,11 +143,14 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             <div className="pt-4 border-t border-slate-200">
                                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Empresa Compradora</p>
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
+                                    <div className="h-10 w-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
                                         {rfq.company?.name?.[0]?.toUpperCase() || 'E'}
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-900 line-clamp-1">{rfq.company?.name || 'Empresa Verificada'}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900 truncate">{rfq.company?.name || 'Empresa Verificada'}</p>
+                                        <div className="mt-1">
+                                            <TrustScoreBadge companyId={rfq.companyId} className="w-fit" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -194,13 +205,16 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                     <Card key={bid.id} className={`border ${bid.status === 'ACCEPTED' ? 'border-green-500 ring-1 ring-green-500' : 'border-slate-200'} shadow-sm`}>
                                         <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
                                             <div className="flex justify-between items-start">
-                                                <div>
-                                                    <CardTitle className="text-lg font-bold text-slate-900">
-                                                        {bid.company?.name || 'Empresa Proveedora'}
-                                                    </CardTitle>
+                                                <div className="flex-1 min-w-0 pr-4">
+                                                    <div className="flex flex-col gap-1 items-start">
+                                                        <CardTitle className="text-lg font-bold text-slate-900 truncate w-full">
+                                                            {bid.company?.name || 'Empresa Proveedora'}
+                                                        </CardTitle>
+                                                        <TrustScoreBadge companyId={bid.companyId} className="mb-1" />
+                                                    </div>
                                                     <CardDescription>{new Date(bid.createdAt).toLocaleDateString()}</CardDescription>
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="text-right shrink-0">
                                                     <p className="text-xl font-bold text-emerald-600">Q {Number(bid.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                                     {bid.status === 'ACCEPTED' && (
                                                         <div className="flex items-center justify-end mt-2">
@@ -258,6 +272,19 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         </CardContent>
                                     </Card>
                                 ))}
+                            </div>
+                        )}
+
+                        {effectiveStatus === 'CLOSED' && acceptedBid && !hasReviewed && (
+                            <ReviewForm 
+                                rfqId={rfq.id} 
+                                targetCompanyId={acceptedBid.companyId} 
+                                targetCompanyName={acceptedBid.company?.name || 'Proveedor'} 
+                            />
+                        )}
+                        {effectiveStatus === 'CLOSED' && hasReviewed && (
+                            <div className="mt-8 p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-center font-medium">
+                                Ya has evaluado a {acceptedBid?.company?.name} por esta transacción.
                             </div>
                         )}
                     </div>
@@ -345,6 +372,19 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                             </Card>
                         ) : (
                             <BidForm rfqId={rfq.id} rfqItems={rfq.items} />
+                        )}
+
+                        {effectiveStatus === 'CLOSED' && supplierBid?.status === 'ACCEPTED' && !hasReviewed && (
+                            <ReviewForm 
+                                rfqId={rfq.id} 
+                                targetCompanyId={rfq.companyId} 
+                                targetCompanyName={rfq.company?.name || 'Comprador'} 
+                            />
+                        )}
+                        {effectiveStatus === 'CLOSED' && supplierBid?.status === 'ACCEPTED' && hasReviewed && (
+                            <div className="mt-8 p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-center font-medium">
+                                Ya has evaluado a {rfq.company?.name} por esta transacción.
+                            </div>
                         )}
                     </div>
                 )}
