@@ -4,7 +4,14 @@ import { useState } from 'react'
 import { analyzeOffers } from '@/actions/ai'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { Sparkles, Loader2, AlertCircle, FileDown } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { ComparativeAnalysisPDF } from '@/components/pdf/comparative-analysis-pdf'
+
+const PDFDownloadLink = dynamic(
+    () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+    { ssr: false, loading: () => <Button variant="outline" disabled className="w-full sm:w-auto"><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Preparando PDF</Button> }
+)
 
 // Simple Markdown Parser for the AI response
 function renderMarkdown(text: string) {
@@ -52,23 +59,37 @@ export default function OfferAnalysis({ rfqId }: { rfqId: string }) {
                     <p className="text-sm text-indigo-600/80 mt-1">Obtén una recomendación objetiva basada en precio y condiciones comerciales.</p>
                 </div>
 
-                <Button
-                    onClick={handleAnalyze}
-                    disabled={isLoading}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-                >
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Analizando...
-                        </>
-                    ) : (
-                        <>
-                            <Sparkles className="mr-2 h-4 w-4" />
-                            Generar Comparativa
-                        </>
+                <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
+                    {analysis && (
+                        <PDFDownloadLink
+                            document={<ComparativeAnalysisPDF rfqId={rfqId} analysisText={analysis} date={new Date().toLocaleDateString()} />}
+                            fileName={`Reporte-Analisis-${rfqId}.pdf`}
+                        >
+                            <Button variant="outline" className="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                                <FileDown className="mr-2 h-4 w-4" />
+                                Exportar PDF
+                            </Button>
+                        </PDFDownloadLink>
                     )}
-                </Button>
+
+                    <Button
+                        onClick={handleAnalyze}
+                        disabled={isLoading}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all w-full sm:w-auto"
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Analizando...
+                            </>
+                        ) : (
+                            <>
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                {analysis ? 'Actualizar Análisis' : 'Generar Comparativa'}
+                            </>
+                        )}
+                    </Button>
+                </div>
             </CardHeader>
 
             {(analysis || error) && (

@@ -10,6 +10,7 @@ import BidForm from "./bid-form"
 import AcceptBidButton from "./accept-bid-button"
 import OfferAnalysis from "./offer-analysis"
 import QaSection from "./qa-section"
+import { PoDownloadButton } from "@/components/pdf/po-download-button"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -202,7 +203,10 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                                 <div className="text-right">
                                                     <p className="text-xl font-bold text-emerald-600">Q {Number(bid.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                                     {bid.status === 'ACCEPTED' && (
-                                                        <Badge variant="default" className="bg-green-600 mt-1">ACEPTADA</Badge>
+                                                        <div className="flex items-center justify-end mt-2">
+                                                            <Badge variant="default" className="bg-green-600">ACEPTADA</Badge>
+                                                            <PoDownloadButton rfq={rfq} bid={bid} />
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -284,6 +288,9 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         } className={supplierBid.status === 'ACCEPTED' ? 'bg-green-600' : ''}>
                                             {supplierBid.status === 'PENDING' ? 'EN REVISIÓN' : supplierBid.status === 'ACCEPTED' ? '✓ ACEPTADA' : 'RECHAZADA'}
                                         </Badge>
+                                        {supplierBid.status === 'ACCEPTED' && (
+                                            <PoDownloadButton rfq={rfq} bid={supplierBid} />
+                                        )}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
