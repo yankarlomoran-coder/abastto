@@ -13,6 +13,7 @@ import QaSection from "./qa-section"
 import { PoDownloadButton } from "@/components/pdf/po-download-button"
 import ReviewForm from "./review-form"
 import { TrustScoreBadge } from "@/components/trust-score-badge"
+import ApproveRfqButton from "./approve-rfq-button"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -96,8 +97,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                 </CardTitle>
                             </div>
                             <Badge variant={effectiveStatus === 'OPEN' ? 'default' : effectiveStatus === 'EVALUATING' ? 'outline' : 'secondary'}
-                                className={effectiveStatus === 'OPEN' ? 'bg-green-600' : effectiveStatus === 'EVALUATING' ? 'border-amber-500 text-amber-600' : ''}>
-                                {effectiveStatus === 'OPEN' ? 'ABIERTA' : effectiveStatus === 'EVALUATING' ? 'EN EVALUACIÓN' : effectiveStatus === 'CLOSED' ? 'CERRADA' : rfq.status}
+                                className={effectiveStatus === 'OPEN' ? 'bg-green-600' : effectiveStatus === 'EVALUATING' ? 'border-amber-500 text-amber-600' : effectiveStatus === 'DRAFT_PENDING_APPROVAL' ? 'bg-amber-100 text-amber-800' : ''}>
+                                {effectiveStatus === 'OPEN' ? 'ABIERTA' : effectiveStatus === 'EVALUATING' ? 'EN EVALUACIÓN' : effectiveStatus === 'CLOSED' ? 'CERRADA' : effectiveStatus === 'DRAFT_PENDING_APPROVAL' ? 'ESPERANDO APROBACIÓN' : rfq.status}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -171,6 +172,9 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                 {/* --- BUYER VIEW: List of Bids --- */}
                 {role === 'BUYER' && (
                     <div className="space-y-6">
+                        {effectiveStatus === 'DRAFT_PENDING_APPROVAL' && ((session.user as any).companyRole === 'OWNER' || (session.user as any).companyRole === 'ADMIN') && (
+                            <ApproveRfqButton rfqId={rfq.id} />
+                        )}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 <PackageIcon className="h-5 w-5 text-blue-600" />
@@ -265,7 +269,12 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                             </div>
 
                                             {effectiveStatus === 'EVALUATING' && (
-                                                <div className="pt-4 flex justify-end">
+                                                <div className="pt-4 flex justify-end gap-3">
+                                                    <Link href={`/rfq/${rfq.id}/chat/${bid.companyId}`}>
+                                                        <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold shadow-sm">
+                                                            💬 Negociación Privada
+                                                        </Button>
+                                                    </Link>
                                                     <AcceptBidButton bidId={bid.id} rfqId={rfq.id} amount={Number(bid.amount)} />
                                                 </div>
                                             )}
@@ -367,6 +376,14 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm whitespace-pre-wrap">
                                             {supplierBid.coverLetter}
                                         </div>
+                                    </div>
+
+                                    <div className="pt-4 flex justify-end mt-4 border-t border-slate-100">
+                                        <Link href={`/rfq/${rfq.id}/chat/${rfq.companyId}`}>
+                                            <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold shadow-sm w-full sm:w-auto">
+                                                💬 Ingresar al Chat de Negociación
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </CardContent>
                             </Card>

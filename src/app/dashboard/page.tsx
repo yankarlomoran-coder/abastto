@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     if (isBuyer) {
         const [spentAgg, activeRfqs, closedRfqs, recentRfqs] = await Promise.all([
             prisma.bid.aggregate({ where: { status: 'ACCEPTED', rfq: { companyId } }, _sum: { amount: true } }),
-            prisma.rfq.count({ where: { companyId, status: { in: ['OPEN', 'EVALUATING'] } } }),
+            prisma.rfq.count({ where: { companyId, status: { in: ['OPEN', 'EVALUATING', 'DRAFT_PENDING_APPROVAL' as any] } } }),
             prisma.rfq.count({ where: { companyId, status: 'CLOSED' } }),
             prisma.rfq.findMany({ 
                 where: { companyId }, 
@@ -85,10 +85,10 @@ export default async function DashboardPage() {
                 </div>
                 
                 <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
-                    <SidebarItem icon={LayoutDashboard} label="Inicio" active />
-                    <SidebarItem icon={FileText} label={isBuyer ? "Mis Licitaciones" : "Oportunidades"} />
-                    <SidebarItem icon={Activity} label="Analíticas Generales" />
-                    <SidebarItem icon={Users} label="Red de Proveedores" />
+                    <SidebarItem icon={LayoutDashboard} label="Inicio" active href="/dashboard" />
+                    <SidebarItem icon={FileText} label={isBuyer ? "Mis Licitaciones" : "Oportunidades"} href="/dashboard" />
+                    {isBuyer && <SidebarItem icon={Activity} label="Analíticas Generales" href="/analytics" />}
+                    <SidebarItem icon={Users} label="Red de Proveedores" href="/dashboard" />
                     
                     <div className="pt-8 pb-3 px-3 text-[0.6875rem] font-bold tracking-[0.05em] text-[#566166] uppercase">
                         Administración
@@ -238,6 +238,7 @@ export default async function DashboardPage() {
                                                         {effectiveStatus === 'OPEN' && <Badge variant="outline" className="bg-[#f0f4f7] text-[#003798] border-[#c5d6f0] px-3 py-1 font-bold text-[0.6875rem]">ABIERTA</Badge>}
                                                         {effectiveStatus === 'EVALUATING' && <Badge variant="outline" className="bg-[#fff7f6] text-[#9f403d] border-[#fe8983] px-3 py-1 font-bold text-[0.6875rem]">EVALUANDO</Badge>}
                                                         {effectiveStatus === 'CLOSED' && <Badge variant="outline" className="bg-[#f7f9fb] text-[#566166] border-[#e8eff3] shadow-none px-3 py-1 font-bold text-[0.6875rem]">CERRADA</Badge>}
+                                                        {effectiveStatus === 'DRAFT_PENDING_APPROVAL' && <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1 font-bold text-[0.6875rem]"><Clock className="w-3 h-3 inline mr-1"/> ESPERANDO APROBACIÓN</Badge>}
                                                     </td>
                                                     <td className="px-6 py-4.5 text-right font-bold text-[#2a3439] whitespace-nowrap">
                                                         {row.metric}
@@ -316,11 +317,11 @@ function MetricCard({ title, value, icon: Icon, trend }: any) {
     )
 }
 
-function SidebarItem({ icon: Icon, label, active }: any) {
+function SidebarItem({ icon: Icon, label, active, href = "#" }: any) {
     return (
-        <a href="#" className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[0.875rem] font-semibold transition-all ${active ? 'bg-[#ffffff] text-[#003798] shadow-[0_2px_8px_rgba(42,52,57,0.04)] border border-[#e8eff3]' : 'text-[#435368] hover:bg-[#e1e9ee] hover:text-[#0b0f10]'}`}>
+        <Link href={href} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[0.875rem] font-semibold transition-all ${active ? 'bg-[#ffffff] text-[#003798] shadow-[0_2px_8px_rgba(42,52,57,0.04)] border border-[#e8eff3]' : 'text-[#435368] hover:bg-[#e1e9ee] hover:text-[#0b0f10]'}`}>
             <Icon className="w-[18px] h-[18px]" /> {label}
-        </a>
+        </Link>
     )
 }
 

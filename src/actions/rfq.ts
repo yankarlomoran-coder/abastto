@@ -43,6 +43,15 @@ export async function createRfq(prevState: State | undefined, data: any) {
         return { message: 'Debes pertenecer a una empresa para crear una solicitud.' }
     }
 
+    const company = await prisma.company.findUnique({
+        where: { id: session.user.companyId },
+        select: { isVerified: true }
+    })
+
+    if (!company?.isVerified) {
+        return { message: 'Acceso corporativo denegado: Tu empresa aún no está homologada (KYC). Sube tu papelería legal en Ajustes.' }
+    }
+
     const validatedFields = RfqSchema.safeParse(data)
 
     console.log("Validating RFQ (Structured):", validatedFields.success ? "Success" : "Failed")
@@ -56,8 +65,13 @@ export async function createRfq(prevState: State | undefined, data: any) {
 
     const { title, description, budget, deadline, deliveryLocation, paymentTerms, category, items } = validatedFields.data
 
+    // Determine initial status based on hierarchy
+    const role = (session.user as any).companyRole; // Temporary cast to avoid next-auth strict typings issue if not augmented
+    const isManager = role === 'OWNER' || role === 'ADMIN';
+    const initialStatus = isManager ? 'OPEN' : 'DRAFT_PENDING_APPROVAL';
+    
     try {
-        await prisma.rfq.create({
+        await (prisma as any).rfq.create({
             data: {
                 title,
                 description,
@@ -67,7 +81,8 @@ export async function createRfq(prevState: State | undefined, data: any) {
                 paymentTerms,
                 category,
                 companyId: session.user.companyId,
-                status: 'OPEN',
+                status: initialStatus,
+                needsApproval: !isManager,
                 items: {
                     create: items.map(item => ({
                         name: item.name,
@@ -87,4 +102,33 @@ export async function createRfq(prevState: State | undefined, data: any) {
 
     revalidatePath('/dashboard')
     redirect('/dashboard')
+}
+
+export async function approveRfq(rfqId: string) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, message: 'No autenticado' }
+    
+    const rfq = await prisma.rfq.findUnique({ where: { id: rfqId } })
+    if (!rfq || rfq.companyId !== session.user.companyId) return { success: false, message: 'Acceso denegado' }
+
+    const role = (session.user as any).companyRole
+    if (role !== 'OWNER' && role !== 'ADMIN') {
+        return { success: false, message: 'Solo los administradores pueden aprobar compras.' }
+    }
+
+    try {
+        await (prisma as any).rfq.update({
+            where: { id: rfqId },
+            data: {
+                status: 'OPEN',
+                needsApproval: false,
+                approvedById: session.user.id
+            }
+        })
+        revalidatePath('/dashboard')
+        revalidatePath(`/rfq/${rfqId}`)
+        return { success: true }
+    } catch (error) {
+        return { success: false, message: 'Error de base de datos.' }
+    }
 }

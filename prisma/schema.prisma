@@ -61,6 +61,7 @@ enum CompanyRole {
 }
 
 enum RfqStatus {
+  DRAFT_PENDING_APPROVAL
   OPEN
   EVALUATING
   CLOSED
@@ -94,6 +95,7 @@ model Company {
   industry   IndustrySector
   department Location
   isVerified Boolean        @default(false)
+  kycStatus  String         @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
@@ -104,6 +106,22 @@ model Company {
   questions       Question[]
   authoredReviews Review[]     @relation("AuthoredReviews")
   receivedReviews Review[]     @relation("ReceivedReviews")
+  documents       CompanyDocument[]
+  sentMessages    Message[]    @relation("SentMessages")
+  receivedMessages Message[]   @relation("ReceivedMessages")
+}
+
+model CompanyDocument {
+  id        String   @id @default(cuid())
+  type      String   // RTU, PATENTE, REPRESENTACION_LEGAL
+  url       String   // Data URL for MVP or S3 URL
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -126,6 +144,8 @@ model Rfq {
   description      String
   budget           Decimal
   status           RfqStatus     @default(OPEN)
+  needsApproval    Boolean       @default(false)
+  approvedById     String?
   deadline         DateTime
   deliveryLocation String?
   paymentTerms     PaymentTerms?
@@ -140,6 +160,7 @@ model Rfq {
   items     RfqItem[]
   questions Question[]
   reviews   Review[]
+  messages  Message[]
 }
 
 model RfqItem {
@@ -236,3 +257,19 @@ model Review {
   // Una empresa solo puede dejar 1 reseña por RFQ
   @@unique([authorCompanyId, rfqId])
 }
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  
+  senderId   String
+  receiverId String
+  rfqId      String
+  
+  createdAt  DateTime @default(now())
+
+  rfq        Rfq      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  sender     Company  @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   Company  @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+

@@ -37,6 +37,15 @@ export async function createBid(prevState: BidState | undefined, data: any) {
         return { message: 'Acceso denegado. Solo proveedores verificados pueden enviar ofertas.' }
     }
 
+    const company = await prisma.company.findUnique({
+        where: { id: session.user.companyId },
+        select: { isVerified: true }
+    })
+
+    if (!company?.isVerified) {
+        return { message: 'Acceso corporativo restringido: Debes homologar a tu empresa subiendo la documentación legal requerida en Ajustes -> Verificación.' }
+    }
+
     const validatedFields = BidSchema.safeParse(data)
 
     if (!validatedFields.success) {

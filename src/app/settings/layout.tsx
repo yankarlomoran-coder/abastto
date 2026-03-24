@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { User, Building, Users } from "lucide-react"
+import { User, Building, Users, ShieldCheck } from "lucide-react"
 
 export default async function SettingsLayout({
     children,
@@ -44,6 +44,11 @@ export default async function SettingsLayout({
                             <Link href="/settings/team" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white hover:border hover:shadow-sm transition-all border border-transparent">
                                 <Users className="w-4 h-4 text-slate-400" />
                                 Directorio de Equipo
+                            </Link>
+
+                            <Link href="/settings/verification" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition-all border border-transparent">
+                                <ShieldCheck className="w-4 h-4 text-blue-500" />
+                                Verificación KYC
                             </Link>
                         </nav>
                     </aside>
