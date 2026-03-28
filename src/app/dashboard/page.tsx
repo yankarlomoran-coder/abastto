@@ -99,9 +99,9 @@ export default async function DashboardPage() {
                 
                 <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
                     <SidebarItem icon={LayoutDashboard} label="Inicio" active href="/dashboard" />
-                    <SidebarItem icon={FileText} label={isBuyer ? "Mis Licitaciones" : "Oportunidades"} href="/dashboard" />
-                    {isBuyer && <SidebarItem icon={Activity} label="Analíticas Generales" href="/dashboard" />}
-                    <SidebarItem icon={Users} label="Red de Proveedores" href="/dashboard" />
+                    <SidebarItem icon={FileText} label={isBuyer ? "Mis Licitaciones" : "Oportunidades"} href="/rfq" />
+                    {isBuyer && <SidebarItem icon={Activity} label="Analíticas Generales" href="/analytics" />}
+                    <SidebarItem icon={Users} label="Red de Proveedores" href="/network" />
                     
                     <div className="pt-8 pb-3 px-3 text-[0.6875rem] font-bold tracking-[0.05em] text-[#566166] uppercase">
                         Administración
@@ -134,10 +134,12 @@ export default async function DashboardPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-6">
-                        <button className="relative text-[#566166] hover:text-[#0053db] transition-colors p-2 hover:bg-[#f0f4f7] rounded-full">
-                            <Bell className="w-[22px] h-[22px]" />
-                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#fe8983] border-2 border-[#ffffff] rounded-full"></span>
-                        </button>
+                        <Link href="/notifications">
+                            <button className="relative text-[#566166] hover:text-[#0053db] transition-colors p-2 hover:bg-[#f0f4f7] rounded-full">
+                                <Bell className="w-[22px] h-[22px]" />
+                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#fe8983] border-2 border-[#ffffff] rounded-full"></span>
+                            </button>
+                        </Link>
                         <div className="w-px h-6 bg-[#e8eff3]"></div>
                         <Link href="/settings">
                             <div className="flex items-center gap-3 cursor-pointer group">
