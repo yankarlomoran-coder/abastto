@@ -105,7 +105,7 @@ export default function QaSection({
                                         <div className="w-full">
                                             <div className="flex justify-between items-start mb-1">
                                                 <p className="text-sm font-semibold text-slate-900">
-                                                    {isMyQuestion ? 'Tu Empresa' : (q.company?.name || 'Proveedor')}
+                                                    {isMyQuestion ? 'Tu Empresa' : 'Proveedor Anónimo'}
                                                 </p>
                                                 <span className="text-xs text-slate-400">
                                                     {new Date(q.createdAt).toLocaleDateString()}
