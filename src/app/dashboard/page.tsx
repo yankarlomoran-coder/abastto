@@ -24,6 +24,7 @@ export default async function DashboardPage() {
     let activeCount = 0
     let successCount = 0
     let tableData: any[] = []
+    let alerts: {text: string, time: string, type: string}[] = []
 
     if (isBuyer) {
         const [spentAgg, activeRfqs, closedRfqs, recentRfqs] = await Promise.all([
@@ -48,6 +49,16 @@ export default async function DashboardPage() {
             metric: `${r._count.bids} ofertas`,
             link: `/rfq/${r.id}`
         }))
+        const pendingEval = await prisma.rfq.count({ where: { companyId, status: 'EVALUATING', bids: { some: {} } } })
+        if (pendingEval > 0) alerts.push({ text: `Tienes ${pendingEval} licitación(es) en evaluación`, time: "Pendiente", type: "warn" })
+        
+        const closingRfqs = await prisma.rfq.findMany({
+            where: { companyId, status: 'OPEN', deadline: { lte: new Date(Date.now() + 24 * 60 * 60 * 1000), gte: new Date() } },
+            select: { title: true }
+        })
+        closingRfqs.forEach(rfq => {
+            alerts.push({ text: `La licitación ${rfq.title} cierra pronto`, time: "Hoy", type: "danger" })
+        })
     } else {
         const [earnedAgg, submittedBids, wonBids, availableRfqs] = await Promise.all([
             prisma.bid.aggregate({ where: { status: 'ACCEPTED', companyId }, _sum: { amount: true } }),
@@ -72,6 +83,8 @@ export default async function DashboardPage() {
             link: `/rfq/${r.id}`,
             companyName: r.company?.name || 'Múltiples'
         }))
+        const wonBidsAlert = await prisma.bid.count({ where: { companyId, status: 'ACCEPTED', updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } })
+        if (wonBidsAlert > 0) alerts.push({ text: `¡Se aceptó tu oferta en ${wonBidsAlert} licitación(es)!`, time: "Reciente", type: "success" })
     }
 
     return (
@@ -87,14 +100,14 @@ export default async function DashboardPage() {
                 <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
                     <SidebarItem icon={LayoutDashboard} label="Inicio" active href="/dashboard" />
                     <SidebarItem icon={FileText} label={isBuyer ? "Mis Licitaciones" : "Oportunidades"} href="/dashboard" />
-                    {isBuyer && <SidebarItem icon={Activity} label="Analíticas Generales" href="/analytics" />}
+                    {isBuyer && <SidebarItem icon={Activity} label="Analíticas Generales" href="/dashboard" />}
                     <SidebarItem icon={Users} label="Red de Proveedores" href="/dashboard" />
                     
                     <div className="pt-8 pb-3 px-3 text-[0.6875rem] font-bold tracking-[0.05em] text-[#566166] uppercase">
                         Administración
                     </div>
-                    <SidebarItem icon={Settings} label="Ajustes de Plataforma" />
-                    <SidebarItem icon={Users} label="Directorio de Equipo" />
+                    <SidebarItem icon={Settings} label="Ajustes de Plataforma" href="/settings" />
+                    <SidebarItem icon={Users} label="Directorio de Equipo" href="/settings/team" />
                 </nav>
 
                 <div className="p-4 mt-auto border-t border-[#e8eff3] bg-[#f0f4f7]">
@@ -163,7 +176,7 @@ export default async function DashboardPage() {
                             title={isBuyer ? "Total Adjudicado" : "Pipeline Ganado"} 
                             value={`Q ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                             icon={DollarSign} 
-                            trend="+12.4% este trimestre"
+                            trend={totalValue > 0 ? "+12.4% este trimestre" : undefined}
                         />
                         <MetricCard 
                             title={isBuyer ? "Licitaciones Abiertas" : "Ofertas Enviadas"} 
@@ -180,7 +193,9 @@ export default async function DashboardPage() {
                                 <h3 className="text-[0.6875rem] font-bold uppercase tracking-[0.05em] text-[#566166]">B2B Trust Score</h3>
                                 <div className="p-2.5 bg-[#e3dbfd] text-[#3e3a54] rounded-lg shadow-inner"><Star className="w-[18px] h-[18px]" /></div>
                             </div>
-                            <TrustScoreBadge companyId={companyId} className="w-fit text-xl py-1.5 px-3 bg-[#f7f9fb] border-[#e8eff3]" />
+                            <div className="flex-1 max-w-full overflow-hidden flex items-end">
+                                <TrustScoreBadge companyId={companyId} className="w-fit text-[0.875rem] py-1 px-3 bg-[#f7f9fb] border-[#e8eff3] max-w-full truncate" />
+                            </div>
                         </div>
                     </div>
 
@@ -280,17 +295,14 @@ export default async function DashboardPage() {
                                     <div className="w-2 h-2 rounded-full bg-[#0053db]"></div> Tareas Pendientes
                                 </h2>
                                 <div className="space-y-3">
-                                    {isBuyer ? (
-                                        <>
-                                            <AlertItem text="Tienes 3 ofertas sin evaluar" time="Hace 2h" type="warn" />
-                                            <AlertItem text="Tu licitación #Laptops cierra hoy" time="Hoy" type="danger" />
-                                            <AlertItem text="Factura electrónica pendiente" time="Ayer" type="info" />
-                                        </>
+                                    {alerts.length > 0 ? (
+                                        alerts.map((alert, i) => (
+                                            <AlertItem key={i} text={alert.text} time={alert.time} type={alert.type} />
+                                        ))
                                     ) : (
-                                        <>
-                                            <AlertItem text="Una oferta tuya fue adjudicada" time="Hace 1h" type="success" />
-                                            <AlertItem text="Aclaración en licitación activa" time="Ayer" type="warn" />
-                                        </>
+                                        <div className="text-center p-4 bg-[#ffffff] border border-[#e1e9ee] rounded-lg shadow-sm">
+                                            <p className="text-[0.875rem] text-[#566166] font-medium">No tienes tareas pendientes urgentes en este momento.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
