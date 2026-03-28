@@ -112,7 +112,7 @@ export default async function DashboardPage() {
 
                 <div className="p-4 mt-auto border-t border-[#e8eff3] bg-[#f0f4f7]">
                     <form action={async () => { "use server"; await signOut({ redirectTo: '/login' }) }}>
-                        <button className="flex items-center w-full gap-3 px-3 py-2.5 text-sm font-semibold text-[#752121] rounded-lg hover:bg-[#fff7f6] hover:border hover:border-[#fe8983] border border-transparent transition-all">
+                        <button className="cursor-pointer flex items-center w-full gap-3 px-3 py-2.5 text-sm font-semibold text-[#752121] rounded-lg hover:bg-[#fff7f6] hover:border hover:border-[#fe8983] border border-transparent transition-all">
                             <LogOut className="w-4 h-4" /> Cerrar Sesión
                         </button>
                     </form>
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-6">
                         <Link href="/notifications">
-                            <button className="relative text-[#566166] hover:text-[#0053db] transition-colors p-2 hover:bg-[#f0f4f7] rounded-full">
+                            <button className="cursor-pointer relative text-[#566166] hover:text-[#0053db] transition-colors p-2 hover:bg-[#f0f4f7] rounded-full">
                                 <Bell className="w-[22px] h-[22px]" />
                                 <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#fe8983] border-2 border-[#ffffff] rounded-full"></span>
                             </button>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                         </div>
                         {isBuyer && (
                             <Link href="/rfq/create">
-                                <Button className="bg-gradient-to-br from-[#0053db] to-[#0048c1] hover:from-[#0048c1] hover:to-[#003798] text-[#ffffff] shadow-[0_8px_20px_-6px_rgba(0,83,219,0.5)] border-0 h-11 px-8 rounded-[0.375rem] font-bold text-[0.875rem] tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                <Button className="cursor-pointer bg-gradient-to-br from-[#0053db] to-[#0048c1] hover:from-[#0048c1] hover:to-[#003798] text-[#ffffff] shadow-[0_8px_20px_-6px_rgba(0,83,219,0.5)] border-0 h-11 px-8 rounded-[0.375rem] font-bold text-[0.875rem] tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98]">
                                     <Plus className="w-[18px] h-[18px] mr-2" /> Nueva Licitación
                                 </Button>
                             </Link>
@@ -207,9 +207,11 @@ export default async function DashboardPage() {
                         <div className="bg-[#ffffff] rounded-xl shadow-[0_6px_32px_rgba(42,52,57,0.03)] border border-[#e1e9ee] overflow-hidden flex flex-col">
                             <div className="px-6 py-5 flex justify-between items-center bg-[#fcfdff] border-b border-[#e8eff3]">
                                 <h2 className="text-[1.125rem] font-black text-[#0b0f10] tracking-tight">{isBuyer ? 'Licitaciones Recientes' : 'Mercado: Oportunidades'}</h2>
-                                <Button variant="ghost" className="text-[#003798] hover:bg-[#dbe1ff] hover:text-[#003798] text-[0.875rem] font-bold h-9 px-4 rounded-md transition-colors">
-                                    Ver historial completo
-                                </Button>
+                                <Link href="/rfq">
+                                    <Button variant="ghost" className="cursor-pointer text-[#003798] hover:bg-[#dbe1ff] hover:text-[#003798] text-[0.875rem] font-bold h-9 px-4 rounded-md transition-colors">
+                                        Ver historial completo
+                                    </Button>
+                                </Link>
                             </div>
                             
                             {tableData.length === 0 ? (
@@ -262,7 +264,7 @@ export default async function DashboardPage() {
                                                     </td>
                                                     <td className="px-6 py-4.5 text-right whitespace-nowrap">
                                                         <Link href={row.link}>
-                                                            <Button variant="ghost" size="sm" className="h-9 font-bold tracking-wide text-[#0053db] hover:bg-[#dbe1ff] opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button variant="ghost" size="sm" className="cursor-pointer h-9 font-bold tracking-wide text-[#0053db] hover:bg-[#dbe1ff] opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 Abrir Panel
                                                             </Button>
                                                         </Link>
@@ -333,7 +335,7 @@ function MetricCard({ title, value, icon: Icon, trend }: any) {
 
 function SidebarItem({ icon: Icon, label, active, href = "#" }: any) {
     return (
-        <Link href={href} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[0.875rem] font-semibold transition-all ${active ? 'bg-[#ffffff] text-[#003798] shadow-[0_2px_8px_rgba(42,52,57,0.04)] border border-[#e8eff3]' : 'text-[#435368] hover:bg-[#e1e9ee] hover:text-[#0b0f10]'}`}>
+        <Link href={href} className={`cursor-pointer flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[0.875rem] font-semibold transition-all ${active ? 'bg-[#ffffff] text-[#003798] shadow-[0_2px_8px_rgba(42,52,57,0.04)] border border-[#e8eff3]' : 'text-[#435368] hover:bg-[#e1e9ee] hover:text-[#0b0f10]'}`}>
             <Icon className="w-[18px] h-[18px]" /> {label}
         </Link>
     )
