@@ -34,6 +34,13 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
         redirect(`/rfq/${rfqId}`)
     }
 
+    // El "otro" u objetivo al que le vamos a escribir depende de quién está navegando:
+    // Si soy el Comprador, le escribo al Proveedor (otherCompanyId de la URL).
+    // Si soy el Proveedor, le escribo al Comprador creador de la RFQ (rfq.companyId).
+    const actualOtherCompanyId = isBuyer ? otherCompanyId : rfq.companyId;
+    const actualOtherCompanyTitle = isBuyer ? otherCompany.name : rfq.company.name;
+    const actualOtherCompanyVerified = isBuyer ? otherCompany.isVerified : rfq.company.isVerified;
+
     return (
         <div className="flex flex-col h-screen bg-[#f7f9fb]">
             {/* Encabezado del Chat */}
@@ -43,8 +50,8 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
                 </Link>
                 <div className="flex-1">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold text-slate-900">{otherCompany.name}</h1>
-                        {otherCompany.isVerified && <ShieldCheck className="w-5 h-5 text-green-500" />}
+                        <h1 className="text-xl font-bold text-slate-900">{actualOtherCompanyTitle}</h1>
+                        {actualOtherCompanyVerified && <ShieldCheck className="w-5 h-5 text-green-500" />}
                     </div>
                     <p className="text-sm font-semibold text-slate-500 flex items-center gap-2 mt-0.5">
                         <span className="text-blue-600">Ref: {rfq.title}</span>
@@ -56,7 +63,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
             <ChatClient 
                 rfqId={rfqId}
                 currentUserCompanyId={session.user.companyId}
-                otherCompanyId={otherCompanyId}
+                otherCompanyId={actualOtherCompanyId}
             />
         </div>
     )
