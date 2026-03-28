@@ -83,11 +83,17 @@ ${bidDataText}
 
         // 4. Call Gemini API
         const result = await model.generateContent(prompt)
-        const response = result.response
+        const responseText = result.response.text()
+
+        // 5. Save the analysis to the DB
+        await prisma.rfq.update({
+            where: { id: rfqId },
+            data: { aiAnalysis: responseText }
+        })
 
         return {
             success: true,
-            analysis: response.text()
+            analysis: responseText
         }
 
     } catch (error) {

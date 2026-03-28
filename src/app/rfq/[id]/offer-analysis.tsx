@@ -24,9 +24,9 @@ function renderMarkdown(text: string) {
     return html
 }
 
-export default function OfferAnalysis({ rfqId }: { rfqId: string }) {
+export default function OfferAnalysis({ rfqId, initialAnalysis }: { rfqId: string, initialAnalysis?: string | null }) {
     const [isLoading, setIsLoading] = useState(false)
-    const [analysis, setAnalysis] = useState<string | null>(null)
+    const [analysis, setAnalysis] = useState<string | null>(initialAnalysis || null)
     const [error, setError] = useState<string | null>(null)
 
     const handleAnalyze = async () => {

@@ -184,7 +184,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                         </div>
 
                         {rfq.bids.length > 0 && effectiveStatus === 'EVALUATING' && (
-                            <OfferAnalysis rfqId={rfq.id} />
+                            <OfferAnalysis rfqId={rfq.id} initialAnalysis={rfq.aiAnalysis} />
                         )}
 
                         {rfq.bids.length === 0 ? (
@@ -381,7 +381,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
 
                                     {effectiveStatus === 'EVALUATING' && (
                                         <div className="pt-4 flex justify-end mt-4 border-t border-slate-100">
-                                            <Link href={`/rfq/${rfq.id}/chat/${rfq.companyId}`}>
+                                            <Link href={`/rfq/${rfq.id}/chat/${session.user.companyId}`}>
                                                 <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold shadow-sm w-full sm:w-auto">
                                                     💬 Ingresar al Chat de Negociación
                                                 </Button>

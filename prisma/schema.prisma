@@ -150,6 +150,7 @@ model Rfq {
   deliveryLocation String?
   paymentTerms     PaymentTerms?
   category         RfqCategory?
+  aiAnalysis       String?       @db.Text
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
