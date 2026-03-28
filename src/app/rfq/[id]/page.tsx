@@ -38,6 +38,7 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                 orderBy: { amount: 'asc' }
             },
             questions: {
+                include: { company: { select: { name: true } } },
                 orderBy: { createdAt: 'asc' }
             },
             reviews: {
@@ -378,13 +379,15 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 flex justify-end mt-4 border-t border-slate-100">
-                                        <Link href={`/rfq/${rfq.id}/chat/${rfq.companyId}`}>
-                                            <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold shadow-sm w-full sm:w-auto">
-                                                💬 Ingresar al Chat de Negociación
-                                            </Button>
-                                        </Link>
-                                    </div>
+                                    {effectiveStatus === 'EVALUATING' && (
+                                        <div className="pt-4 flex justify-end mt-4 border-t border-slate-100">
+                                            <Link href={`/rfq/${rfq.id}/chat/${rfq.companyId}`}>
+                                                <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold shadow-sm w-full sm:w-auto">
+                                                    💬 Ingresar al Chat de Negociación
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         ) : (

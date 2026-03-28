@@ -12,6 +12,7 @@ type QuestionItem = {
     answer: string | null
     createdAt: Date
     companyId: string
+    company?: { name: string }
 }
 
 export default function QaSection({
@@ -104,7 +105,7 @@ export default function QaSection({
                                         <div className="w-full">
                                             <div className="flex justify-between items-start mb-1">
                                                 <p className="text-sm font-semibold text-slate-900">
-                                                    {isOwner ? `Proveedor (Anon.` : isMyQuestion ? 'Tu Empresa' : 'Proveedor Anónimo'}
+                                                    {isMyQuestion ? 'Tu Empresa' : (q.company?.name || 'Proveedor')}
                                                 </p>
                                                 <span className="text-xs text-slate-400">
                                                     {new Date(q.createdAt).toLocaleDateString()}

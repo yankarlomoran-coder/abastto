@@ -65,10 +65,8 @@ export async function createRfq(prevState: State | undefined, data: any) {
 
     const { title, description, budget, deadline, deliveryLocation, paymentTerms, category, items } = validatedFields.data
 
-    // Determine initial status based on hierarchy
-    const role = (session.user as any).companyRole; // Temporary cast to avoid next-auth strict typings issue if not augmented
-    const isManager = role === 'OWNER' || role === 'ADMIN';
-    const initialStatus = isManager ? 'OPEN' : 'DRAFT_PENDING_APPROVAL';
+    // Forzamos que toda nueva solicitud nazca en revisión gerencial para el flujo B2B
+    const initialStatus = 'DRAFT_PENDING_APPROVAL';
     
     try {
         await (prisma as any).rfq.create({
@@ -82,7 +80,7 @@ export async function createRfq(prevState: State | undefined, data: any) {
                 category,
                 companyId: session.user.companyId,
                 status: initialStatus,
-                needsApproval: !isManager,
+                needsApproval: true,
                 items: {
                     create: items.map(item => ({
                         name: item.name,
