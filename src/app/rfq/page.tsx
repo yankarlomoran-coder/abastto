@@ -14,7 +14,12 @@ export default async function RfqListPage() {
     if (!companyId) return null
 
     const rfqs = await prisma.rfq.findMany({
-        where: isBuyer ? { companyId } : { status: 'OPEN', deadline: { gt: new Date() } },
+        where: isBuyer ? { companyId } : { 
+            OR: [
+                { status: 'OPEN', deadline: { gt: new Date() } },
+                { bids: { some: { companyId } } }
+            ]
+        },
         orderBy: { createdAt: 'desc' },
         include: { _count: { select: { bids: true } } }
     })

@@ -436,11 +436,11 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                     {/* RIGHT COLUMN: Sidebar Metadata & Stats */}
                     <div className="hidden xl:block space-y-6 sticky top-8">
                         {/* Financial Block */}
-                        <div className="bg-[#131b2e] text-white rounded-[16px] p-8 shadow-[0_12px_40px_rgba(19,27,46,0.15)] relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[30px] -mr-10 -mt-10"></div>
-                            <p className="text-[0.7rem] font-bold text-[#bec6e0] uppercase tracking-[0.15em] mb-2 relative z-10">Asignación Presupuestaria</p>
-                            <p className="text-4xl font-black text-white tracking-tighter relative z-10 flex items-center gap-2">
-                                <span className="text-2xl text-[#7c839b] font-medium">Q</span> {Number(rfq.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <div className="bg-white rounded-[16px] p-8 shadow-[0_4px_40px_rgba(15,23,42,0.03)] border border-[#eceef0] relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#dae2fd]/50 rounded-full blur-[30px] -mr-10 -mt-10"></div>
+                            <p className="text-[0.7rem] font-bold text-[#7c839b] uppercase tracking-[0.15em] mb-2 relative z-10">Asignación Presupuestaria</p>
+                            <p className="text-4xl font-black text-[#131b2e] tracking-tighter relative z-10 flex items-center gap-2">
+                                <span className="text-2xl text-[#586377] font-medium">Q</span> {Number(rfq.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                         </div>
 
