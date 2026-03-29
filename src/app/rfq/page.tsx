@@ -10,9 +10,11 @@ export default async function RfqListPage() {
     if (!session?.user?.id) return null
 
     const isBuyer = session.user.role === 'BUYER'
+    const companyId = session.user.companyId as string
+    if (!companyId) return null
 
     const rfqs = await prisma.rfq.findMany({
-        where: isBuyer ? { companyId: session.user.companyId } : { status: 'OPEN', deadline: { gt: new Date() } },
+        where: isBuyer ? { companyId } : { status: 'OPEN', deadline: { gt: new Date() } },
         orderBy: { createdAt: 'desc' },
         include: { _count: { select: { bids: true } } }
     })
