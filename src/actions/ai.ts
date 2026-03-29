@@ -46,6 +46,7 @@ export async function analyzeOffers(rfqId: string) {
 
             return `
 --- Oferta #${index + 1} ---
+* Bid ID: ${bid.id}
 * Proveedor: ${bid.company?.name || 'Empresa Anónima'}
 * Precio Total Ofertado: Q ${Number(bid.amount).toFixed(2)}
 * Días de Validez de Oferta: ${bid.validityDays || 'No especificado'}
@@ -74,26 +75,53 @@ ${rfqItemsText}
 ### Ofertas Recibidas de Proveedores:
 ${bidDataText}
 
-### Instrucciones para tu respuesta:
-1. Sé directo, profesional e imparcial. Responde en Español.
-2. Analiza los pros y contras de cada oferta. ¿Algún proveedor ofreció un precio unitario sospechosamente bajo o alto comparado con los demás? 
-3. Termina dando un "Veredicto o Recomendación Final" muy claro sobre cuál elegir justificando por qué (¿Es la más barata a nivel total? ¿Tiene mejores condiciones de entrega?).
-4. Usa formato Markdown (saltos de línea, negritas) para que sea fácil de leer en pantalla. No uses colores ni HTML.
+### Instrucciones obligatorias para tu respuesta:
+Eres una API estructurada. 
+Tu única respuesta válida es un documento JSON estricto y parseable, sin backticks de markdown (\`\`\`json), sin formato externo, sin saludos, y sin explicaciones adicionales.
+Debes devolver un JSON que cumpla EXACTAMENTE con esta estructura:
+{
+  "best_bid_id": "ID de la oferta (Bid ID) ganadora recomendada. Usa estrictamente el 'Bid ID' proporcionado.",
+  "best_bid_name": "Nombre corporativo del proveedor recomendado.",
+  "overall_verdict": "Resumen ejecutivo argumentando tu decisión final, max 2 párrafos.",
+  "red_flags": ["Cualquier riesgo o alerta roja que notes en las ofertas. Si no hay nada, array vacío."],
+  "evaluations": [
+    {
+      "bid_id": "ID de la oferta",
+      "provider_name": "Nombre del proveedor de esta oferta",
+      "price_score": 90, // Número de 0 a 100 evaluando el precio (100 = El mejor precio).
+      "time_score": 85, // Número 0-100 evaluando el tiempo de entrega (100 = Más rápido).
+      "quality_score": 80, // Número 0-100 nivel general estimado de cumplimiento técnico.
+      "pros": ["pro 1", "pro 2"], // Lista de ventajas
+      "cons": ["contra 1", "contra 2"] // Lista de desventajas
+    }
+  ]
+}
 `
 
         // 4. Call Gemini API
-        const result = await model.generateContent(prompt)
+        const result = await model.generateContent({
+             contents: [{ role: 'user', parts: [{ text: prompt }] }],
+             generationConfig: {
+                 responseMimeType: "application/json"
+             }
+        })
         const responseText = result.response.text()
 
-        // 5. Save the analysis to the DB
+        // 5. Clean up string just in case, though GEMINI should return raw JSON
+        let cleanJson = responseText.trim()
+        if (cleanJson.startsWith('\`\`\`json')) {
+            cleanJson = cleanJson.replace(/^\`\`\`json\n/, '').replace(/\n\`\`\`$/, '')
+        }
+
+        // 6. Save the analysis to the DB
         await prisma.rfq.update({
             where: { id: rfqId },
-            data: { aiAnalysis: responseText }
+            data: { aiAnalysis: cleanJson }
         })
 
         return {
             success: true,
-            analysis: responseText
+            analysis: cleanJson
         }
 
     } catch (error) {
