@@ -17,11 +17,7 @@ export function NexusChat() {
     body: {
       conversationId: conversationId
     },
-    onResponse(response) {
-      // Si recibimos un ID de conversacion en headers, podríamos capturarlo
-      // Pero para este MVP lo simplificaremos asignando ID si no existe
-    },
-    onError(error) {
+    onError(error: any) {
       console.error(error)
     }
   })
