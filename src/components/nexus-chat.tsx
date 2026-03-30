@@ -20,7 +20,7 @@ export function NexusChat() {
     onError(error: any) {
       console.error(error)
     }
-  }) as any;
+  } as any) as any;
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChatResult;
 
   // Ref for auto-scrolling
