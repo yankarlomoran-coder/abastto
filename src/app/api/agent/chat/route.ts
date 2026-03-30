@@ -67,6 +67,7 @@ export async function POST(req: Request) {
     system: NEXUS_SYSTEM_PROMPT + '\n\n' + contextMessage,
     messages,
     tools: {
+      // @ts-ignore
       searchRfqs: tool({
         description: 'Busca y lista las RFQs (licitaciones) del usuario. Para compradores muestra sus propias RFQs. Para proveedores muestra RFQs abiertas en el mercado.',
         parameters: z.object({
@@ -74,10 +75,12 @@ export async function POST(req: Request) {
             .describe('Filtrar por estado. Usa ALL para ver todas.'),
           searchTerm: z.string().optional()
             .describe('Término de búsqueda para filtrar por título o descripción'),
-          limit: z.number().optional().default(5)
+          limit: z.number().optional()
             .describe('Cantidad máxima de resultados'),
         }),
-        execute: async ({ status, searchTerm, limit }) => {
+        execute: async (args: any) => {
+          const { status, searchTerm, limit } = args;
+          const limitN = limit || 5;
           const where: any = {}
 
           if (userRole === 'BUYER') {
@@ -101,7 +104,7 @@ export async function POST(req: Request) {
           const rfqs = await prisma.rfq.findMany({
             where,
             orderBy: { createdAt: 'desc' },
-            take: limit || 5,
+            take: limitN,
             include: {
               _count: { select: { bids: true } },
               company: { select: { name: true } },
@@ -122,16 +125,19 @@ export async function POST(req: Request) {
             categoria: rfq.category,
           }))
         },
-      }),
+      }) as any,
 
+      // @ts-ignore
       getMyBids: tool({
         description: 'Obtiene las ofertas (bids) de la empresa del usuario. Para compradores: ofertas recibidas en sus RFQs. Para proveedores: ofertas enviadas.',
         parameters: z.object({
           status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'ALL']).optional()
             .describe('Filtrar por estado de la oferta'),
-          limit: z.number().optional().default(5),
+          limit: z.number().optional().describe('Límite de resultados'),
         }),
-        execute: async ({ status, limit }) => {
+        execute: async (args: any) => {
+          const { status, limit } = args;
+          const limitN = limit || 5;
           const where: any = {}
 
           if (userRole === 'BUYER') {
@@ -147,7 +153,7 @@ export async function POST(req: Request) {
           const bids = await prisma.bid.findMany({
             where,
             orderBy: { createdAt: 'desc' },
-            take: limit || 5,
+            take: limitN,
             include: {
               rfq: { select: { title: true, budget: true, status: true } },
               company: { select: { name: true } },
@@ -175,12 +181,13 @@ export async function POST(req: Request) {
             fecha: bid.createdAt.toLocaleDateString('es-GT'),
           }))
         },
-      }),
+      }) as any,
 
+      // @ts-ignore
       getCompanyProfile: tool({
         description: 'Obtiene el perfil de la empresa del usuario, incluyendo info y trust score basado en reviews.',
         parameters: z.object({}),
-        execute: async () => {
+        execute: async (args: any) => {
           const company = await prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -218,14 +225,16 @@ export async function POST(req: Request) {
             ratings: avgRatings,
           }
         },
-      }),
+      }) as any,
 
+      // @ts-ignore
       compareBids: tool({
         description: 'Compara las ofertas recibidas en una RFQ específica. Genera un ranking ponderado para ayudar al usuario a decidir.',
         parameters: z.object({
           rfqId: z.string().describe('El ID de la RFQ a comparar. Si no tienes el ID, usa searchRfqs primero.'),
         }),
-        execute: async ({ rfqId }) => {
+        execute: async (args: any) => {
+          const { rfqId } = args;
           const rfq = await prisma.rfq.findUnique({
             where: { id: rfqId },
             include: {
@@ -280,19 +289,22 @@ export async function POST(req: Request) {
             comparativa,
           }
         },
-      }),
+      }) as any,
 
+      // @ts-ignore
       getAnalytics: tool({
         description: 'Obtiene métricas y analytics de actividad de la empresa del usuario: spending, actividad mensual, tendencias.',
         parameters: z.object({
-          periodo: z.enum(['semana', 'mes', 'trimestre', 'anio']).optional().default('mes')
+          periodo: z.enum(['semana', 'mes', 'trimestre', 'anio']).optional()
             .describe('Período de tiempo para las métricas'),
         }),
-        execute: async ({ periodo }) => {
+        execute: async (args: any) => {
+          const { periodo } = args;
+          const periodoFinal = periodo || 'mes';
           const now = new Date()
           const startDate = new Date()
 
-          switch (periodo) {
+          switch (periodoFinal) {
             case 'semana': startDate.setDate(now.getDate() - 7); break
             case 'mes': startDate.setMonth(now.getMonth() - 1); break
             case 'trimestre': startDate.setMonth(now.getMonth() - 3); break
@@ -343,7 +355,7 @@ export async function POST(req: Request) {
             }
           }
         },
-      }),
+      }) as any,
     },
 
     // Persist after streaming completes
