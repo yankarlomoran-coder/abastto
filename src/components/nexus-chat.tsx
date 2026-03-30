@@ -12,7 +12,7 @@ export function NexusChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   
-  const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading, append } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/agent/chat',
     body: {
       conversationId: conversationId
