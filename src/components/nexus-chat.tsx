@@ -21,7 +21,14 @@ export function NexusChat() {
       console.error(error)
     }
   } as any) as any;
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChatResult;
+  const { 
+    messages = [], 
+    input = '', 
+    handleInputChange = () => {}, 
+    handleSubmit = (e: any) => e?.preventDefault(), 
+    isLoading = false, 
+    append = () => {} 
+  } = useChatResult || {};
 
   // Ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -205,7 +212,7 @@ export function NexusChat() {
 }
 
 function MarkdownContent({ content }: { content: string }) {
-   if (!content) return null;
+   if (!content || typeof content !== 'string') return null;
    return (
       <div className="react-markdown break-words">
          <ReactMarkdown 
