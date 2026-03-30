@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { Bot, X, MessageSquare, Send, Minus, Maximize2, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -14,10 +15,12 @@ export function NexusChat() {
   const [input, setInput] = useState('')
 
   const useChatResult = useChat({
-    api: '/api/agent/chat',
-    body: {
-      conversationId: conversationId
-    },
+    transport: new DefaultChatTransport({
+      api: '/api/agent/chat',
+      body: {
+        conversationId: conversationId
+      }
+    }),
     onError(error: any) {
       console.error(error)
     }
