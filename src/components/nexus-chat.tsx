@@ -170,7 +170,7 @@ export function NexusChat() {
              
              // First save to our persistence API
              if (input.trim() && conversationId) {
-                fetch(\`/api/agent/conversations/\${conversationId}\`, {
+                fetch(`/api/agent/conversations/${conversationId}`, {
                    method: 'POST',
                    headers: { 'Content-Type': 'application/json' },
                    body: JSON.stringify({ role: 'user', content: input })
