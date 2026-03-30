@@ -14,13 +14,23 @@ export function NexusChat() {
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [input, setInput] = useState('')
 
+  const conversationIdRef = useRef<string | null>(conversationId)
+  useEffect(() => {
+    conversationIdRef.current = conversationId
+  }, [conversationId])
+
+  const [chatTransport] = useState(() => new DefaultChatTransport({
+    api: '/api/agent/chat',
+    fetch: async (url, init) => {
+      const bodyStr = init?.body as string;
+      const parsed = bodyStr ? JSON.parse(bodyStr) : {};
+      parsed.conversationId = conversationIdRef.current;
+      return fetch(url, { ...init, body: JSON.stringify(parsed) });
+    }
+  }))
+
   const useChatResult = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/agent/chat',
-      body: {
-        conversationId: conversationId
-      }
-    }),
+    transport: chatTransport,
     onError(error: any) {
       console.error(error)
     }
@@ -41,7 +51,7 @@ export function NexusChat() {
   const handleSubmit = (e?: any) => {
     e?.preventDefault();
     if (!input.trim()) return;
-    sendMessage({ role: 'user', content: input });
+    sendMessage({ text: input });
     setInput('');
   }
 
@@ -105,6 +115,12 @@ export function NexusChat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-5 bg-[#fcfdff] space-y-5 scroll-smooth">
+        {useChatResult.error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error de conexión: </strong>
+            <span className="block sm:inline">{useChatResult.error.message || useChatResult.error.toString()}</span>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center px-4">
             <div className="w-16 h-16 bg-[#dbe1ff] text-[#003798] rounded-full flex items-center justify-center mb-4">
@@ -121,7 +137,7 @@ export function NexusChat() {
               ].map((suggestion, i) => (
                 <button 
                   key={i}
-                  onClick={() => sendMessage({ role: 'user', content: suggestion })}
+                  onClick={() => sendMessage({ text: suggestion })}
                   className="px-3 py-1.5 bg-white border border-[#e1e9ee] text-[#0053db] text-[0.75rem] font-bold rounded-full hover:bg-[#dbe1ff] hover:border-[#c5d6f0] transition-colors cursor-pointer"
                 >
                   {suggestion}
