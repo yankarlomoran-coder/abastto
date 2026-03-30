@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input'
 export function NexusChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
-  
+  const [input, setInput] = useState('')
+
   const useChatResult = useChat({
     api: '/api/agent/chat',
     body: {
@@ -21,14 +22,25 @@ export function NexusChat() {
       console.error(error)
     }
   } as any) as any;
+  
   const { 
     messages = [], 
-    input = '', 
-    handleInputChange = () => {}, 
-    handleSubmit = (e: any) => e?.preventDefault(), 
-    isLoading = false, 
-    append = () => {} 
+    status,
+    sendMessage = () => {} 
   } = useChatResult || {};
+
+  const isLoading = status === 'streaming' || status === 'submitted';
+
+  const handleInputChange = (e: any) => {
+    setInput(e.target.value)
+  }
+
+  const handleSubmit = (e?: any) => {
+    e?.preventDefault();
+    if (!input.trim()) return;
+    sendMessage({ role: 'user', content: input });
+    setInput('');
+  }
 
   // Ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -106,7 +118,7 @@ export function NexusChat() {
               ].map((suggestion, i) => (
                 <button 
                   key={i}
-                  onClick={() => append({ role: 'user', content: suggestion })}
+                  onClick={() => sendMessage({ role: 'user', content: suggestion })}
                   className="px-3 py-1.5 bg-white border border-[#e1e9ee] text-[#0053db] text-[0.75rem] font-bold rounded-full hover:bg-[#dbe1ff] hover:border-[#c5d6f0] transition-colors cursor-pointer"
                 >
                   {suggestion}
