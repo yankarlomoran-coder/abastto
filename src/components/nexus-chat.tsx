@@ -21,7 +21,7 @@ export function NexusChat() {
       console.error(error)
     }
   } as any) as any;
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChatResult;
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChatResult;
 
   // Ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null)
