@@ -12,7 +12,7 @@ export function NexusChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const useChatResult = useChat({
     api: '/api/agent/chat',
     body: {
       conversationId: conversationId
@@ -20,7 +20,8 @@ export function NexusChat() {
     onError(error: any) {
       console.error(error)
     }
-  })
+  }) as any;
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChatResult;
 
   // Ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null)
