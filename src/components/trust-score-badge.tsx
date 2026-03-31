@@ -34,9 +34,9 @@ export async function TrustScoreBadge({ companyId, className = "" }: { companyId
     const globalScore = (q + p + c + pr) / 4
 
     // Determinar el color en base al score
-    let colorClass = "bg-amber-100 text-amber-800 border-amber-200"
-    if (globalScore >= 4.5) colorClass = "bg-emerald-100 text-emerald-800 border-emerald-200"
-    else if (globalScore <= 3.0) colorClass = "bg-red-100 text-red-800 border-red-200"
+    let colorClass = "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
+    if (globalScore >= 4.5) colorClass = "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"
+    else if (globalScore <= 3.0) colorClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
 
     return (
         <Badge variant="outline" className={`flex items-center gap-1 font-semibold ${colorClass} ${className}`}>
