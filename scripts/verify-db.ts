@@ -12,12 +12,24 @@ async function main() {
     await prisma.$connect()
     console.log('✅ Connected successfully!')
 
+    console.log('🏢 Creating test company...')
+    const company = await prisma.company.create({
+      data: {
+        nit: `NIT-${Date.now()}`,
+        name: 'Test Company Verification',
+        industry: 'TECNOLOGIA',
+        department: 'GUATEMALA',
+      }
+    })
+    console.log('✅ Created company:', company.id)
+
     console.log('📝 Creating test user...')
     const user = await prisma.user.create({
       data: {
         email: `test-${Date.now()}@example.com`,
         name: 'Test User',
         role: 'ADMIN',
+        companyId: company.id,
       },
     })
     console.log('✅ Created user:', user.id)

@@ -1,30 +1,35 @@
-'use client'
+"use client"
 
-import React, { useActionState } from 'react'
+import React, { useActionState, useState } from 'react'
 import { authenticate } from '@/lib/actions'
-import { ArrowRight, CheckCircle2, Lock, Mail } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Lock, Mail, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import Footer from '@/components/layout/footer'
 
 export default function LoginPage() {
     const [errorMessage, dispatch] = useActionState(authenticate, undefined)
+    const [showPassword, setShowPassword] = useState(false)
 
     return (
-        <div className="min-h-screen bg-white flex">
+        <div className="min-h-screen flex flex-col">
+            <div className="flex-grow flex flex-col lg:flex-row">
             {/* Left Side - Hero/Testimonial */}
             <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center" />
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-8">
-                        <div className="h-8 w-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="font-bold text-white">A</span>
+                    <Link href="/" className="flex items-center gap-2.5 mb-8 group cursor-pointer w-fit">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                            <BoxIcon className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-bold">Abastto</span>
-                    </div>
+                        <span className="text-2xl font-black tracking-tighter text-white">
+                            ABASTTO
+                        </span>
+                    </Link>
 
                     <h1 className="text-4xl font-bold mb-6 leading-tight">
-                        Optimiza tu proceso de compras B2B hoy.
+                        Optimiza tu proceso de compras hoy.
                     </h1>
 
                     <div className="space-y-4">
@@ -86,7 +91,7 @@ export default function LoginPage() {
                                         autoComplete="email"
                                         required
                                         className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition-colors"
-                                        placeholder="you@example.com"
+                                        placeholder="correo@ejemplo.com"
                                     />
                                 </div>
                             </div>
@@ -109,12 +114,23 @@ export default function LoginPage() {
                                     <input
                                         id="password"
                                         name="password"
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         autoComplete="current-password"
                                         required
-                                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition-colors"
+                                        className="appearance-none block w-full pl-10 pr-10 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition-colors"
                                         placeholder="••••••••"
                                     />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors"
+                                        onMouseDown={() => setShowPassword(true)}
+                                        onMouseUp={() => setShowPassword(false)}
+                                        onMouseLeave={() => setShowPassword(false)}
+                                        onTouchStart={() => setShowPassword(true)}
+                                        onTouchEnd={() => setShowPassword(false)}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -133,12 +149,17 @@ export default function LoginPage() {
                         <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
                             ¿No tienes una cuenta?{' '}
                             <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                                Regístrate gratis
+                                Crear cuenta
                             </Link>
                         </p>
                     </form>
                 </div>
+                </div>
             </div>
+            <Footer />
         </div>
     )
+}
+function BoxIcon(props: any) {
+    return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
 }

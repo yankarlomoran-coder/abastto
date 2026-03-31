@@ -1,0 +1,6 @@
+﻿node_modules/@prisma/client/runtime/library.d.ts(73,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@prisma/client/runtime/library.d.ts(401,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@prisma/client/runtime/library.d.ts(2037,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+scripts/verify-db.ts(17,7): error TS2322: Type '{ email: string; name: string; role: "ADMIN"; }' is not assignable to type '(Without<UserCreateInput, UserUncheckedCreateInput> & UserUncheckedCreateInput) | (Without<...> & UserCreateInput)'.
+  Type '{ email: string; name: string; role: "ADMIN"; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput> & UserCreateInput'.
+    Property 'company' is missing in type '{ email: string; name: string; role: "ADMIN"; }' but required in type 'UserCreateInput'.

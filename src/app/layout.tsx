@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/auth";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Abastto - Plataforma B2B para compras inteligentes",
-  description: "Marketplace B2B de procurement con copiloto Nexus AI.",
+  title: "Abastto - Red Empresarial de Compras Inteligentes",
+  description: "Plataforma de conexión para proveedores verificados y gestión rápida con copiloto Nexus AI.",
 };
 
 export default async function RootLayout({
@@ -26,11 +27,18 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

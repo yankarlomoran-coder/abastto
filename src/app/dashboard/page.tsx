@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Clock, DollarSign, Search, Bell, BarChart3, Users, Settings, Inbox, LayoutDashboard, FileText, Activity, AlertCircle, LogOut } from "lucide-react"
 import { TrustScoreBadge } from "@/components/trust-score-badge"
+import Footer from "@/components/layout/footer"
 
 export default async function DashboardPage() {
     const session = await auth()
@@ -92,9 +93,9 @@ export default async function DashboardPage() {
             {/* Sidebar */}
             <aside className="w-[260px] bg-[#f0f4f7] border-r border-[#e8eff3] flex-shrink-0 hidden md:flex flex-col">
                 <div className="p-6 pb-8">
-                    <div className="flex items-center gap-3 text-[#0053db] font-black text-2xl tracking-tighter cursor-pointer">
+                    <Link href="/" className="flex items-center gap-3 text-[#0053db] font-black text-2xl tracking-tighter cursor-pointer hover:opacity-80 transition-opacity">
                         <BoxIcon className="w-8 h-8" /> ABASTTO
-                    </div>
+                    </Link>
                 </div>
                 
                 <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
@@ -313,6 +314,7 @@ export default async function DashboardPage() {
                         </div>
                     </div>
                 </div>
+                <Footer />
             </main>
         </div>
     )
