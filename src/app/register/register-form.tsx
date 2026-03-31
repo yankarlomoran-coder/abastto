@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useActionState, useState, useEffect } from 'react'
 import { registerUser } from '@/actions/register'
 import { Building2, User, Mail, Lock, CheckCircle2, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react'
