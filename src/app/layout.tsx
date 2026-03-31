@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/auth";
-import { NexusChat } from "@/components/nexus-chat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +24,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const showChat = Boolean(session?.user?.id && session?.user?.companyId);
 
   return (
     <html lang="es">
@@ -33,7 +31,6 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        {showChat && <NexusChat />}
       </body>
     </html>
   );
