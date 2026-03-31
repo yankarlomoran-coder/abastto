@@ -22,9 +22,7 @@ import {
     BoxIcon,
     Plus
 } from 'lucide-react'
-import { ThemeToggle } from "@/components/theme-toggle"
 import { TrustScoreBadge } from "@/components/trust-score-badge"
-import Footer from "@/components/layout/footer"
 
 export default async function DashboardPage() {
     const session = await auth()
@@ -155,7 +153,6 @@ export default async function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-2">
-                            <ThemeToggle />
                             <Link href="/notifications">
                                 <button className="cursor-pointer relative text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-500 transition-all p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl">
                                     <Bell className="w-[22px] h-[22px]" />
@@ -178,7 +175,7 @@ export default async function DashboardPage() {
                     </div>
                 </header>
 
-                <div className="flex-1 p-10 xl:p-14 max-w-[1600px] w-full mx-auto space-y-12">
+                <div className="flex-1 p-10 xl:p-14 max-w-[1600px] w-full mx-auto space-y-12 bg-slate-50 dark:bg-[#030712]">
                     {/* Editorial Header */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 pb-2">
                         <div className="space-y-3">
@@ -247,8 +244,8 @@ export default async function DashboardPage() {
                                     <p className="text-base text-slate-500 dark:text-slate-400 mt-2 max-w-sm font-medium leading-relaxed">No hay transacciones activas en este momento. {isBuyer ? 'Inicia un nuevo proceso para cotizar.' : 'Revisa más tarde para nuevas oportunidades.'}</p>
                                 </div>
                             ) : (
-                                <div className="w-full overflow-x-auto custom-scrollbar">
-                                    <table className="w-full text-left border-collapse">
+                                <div className="w-full overflow-x-auto custom-scrollbar bg-white dark:bg-slate-900">
+                                    <table className="w-full text-left border-collapse bg-white dark:bg-slate-900">
                                         <thead>
                                             <tr className="bg-slate-50/50 dark:bg-white/5 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                                                 <th className="px-8 py-4 border-b border-slate-200 dark:border-white/5">Referencia Comercial</th>
@@ -338,7 +335,6 @@ export default async function DashboardPage() {
                             </div>
                         </div>
                     </div>
-                    <Footer />
                 </div>
             </main>
         </div>

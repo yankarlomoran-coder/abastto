@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, ShieldCheck, Zap, BarChart3 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { HeroGraphic } from "@/components/landing/hero-graphic";
-import { ThemeToggle } from "@/components/theme-toggle";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 

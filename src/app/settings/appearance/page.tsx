@@ -81,12 +81,6 @@ export default function AppearanceSettingsPage() {
                 ))}
             </div>
 
-            <div className="mt-12 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">💡 Tip pro</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                    El modo oscuro de Abastto está diseñado con un contraste balanceado (Slate & Deep Sea) para mejorar la lectura de datos complejos en el dashboard.
-                </p>
-            </div>
         </div>
     )
 }
