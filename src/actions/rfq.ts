@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from '@/lib/activity-log'
 
 import { PaymentTerms, RfqCategory } from '@prisma/client'
 
@@ -69,7 +70,7 @@ export async function createRfq(prevState: State | undefined, data: any) {
     const initialStatus = 'DRAFT_PENDING_APPROVAL';
     
     try {
-        await (prisma as any).rfq.create({
+        const rfq = await (prisma as any).rfq.create({
             data: {
                 title,
                 description,
@@ -90,7 +91,14 @@ export async function createRfq(prevState: State | undefined, data: any) {
                 }
             },
         })
-        console.log("RFQ Created successfully")
+
+        await logActivity({
+            action: 'RFQ_CREATED',
+            description: `Licitación "${title}" creada por Q ${budget.toLocaleString()}`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { rfqId: rfq.id, title, budget }
+        })
     } catch (error) {
         console.error("Failed to create RFQ:", error)
         return {
@@ -123,6 +131,15 @@ export async function approveRfq(rfqId: string) {
                 approvedById: session.user.id
             }
         })
+
+        await logActivity({
+            action: 'RFQ_UPDATED',
+            description: `Licitación "${rfq.title}" aprobada y publicada`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { rfqId, action: 'approved' }
+        })
+
         revalidatePath('/dashboard')
         revalidatePath(`/rfq/${rfqId}`)
         return { success: true }

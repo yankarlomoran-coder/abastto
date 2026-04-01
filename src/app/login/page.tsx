@@ -2,7 +2,7 @@
 
 import React, { useActionState, useState } from 'react'
 import { authenticate } from '@/lib/actions'
-import { ArrowRight, CheckCircle2, Lock, Mail, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Lock, Mail, Eye, EyeOff, BoxIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Footer from '@/components/layout/footer'
@@ -12,7 +12,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0a0f1c] transition-colors duration-300">
             <div className="flex-grow flex flex-col lg:flex-row">
             {/* Left Side - Hero/Testimonial */}
             <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
@@ -50,7 +50,7 @@ export default function LoginPage() {
 
                 <div className="relative z-10 mt-12 bg-slate-800/50 p-6 rounded-xl border border-slate-700 backdrop-blur-sm">
                     <p className="text-lg text-slate-200 italic mb-4">
-                        "Abastto ha transformado cómo obtenemos materiales. La plataforma es intuitiva y la calidad de los proveedores inigualable."
+                        &quot;Abastto ha transformado cómo obtenemos materiales. La plataforma es intuitiva y la calidad de los proveedores inigualable.&quot;
                     </p>
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center font-bold">
@@ -65,11 +65,23 @@ export default function LoginPage() {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
-                <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50 dark:bg-[#0a0f1c] transition-colors">
+                <div className="w-full max-w-md space-y-8 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 transition-colors">
+                    {/* Mobile logo */}
+                    <div className="lg:hidden flex justify-center mb-4">
+                        <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
+                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <BoxIcon className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-2xl font-black tracking-tighter text-blue-600 dark:text-blue-500">
+                                ABASTTO
+                            </span>
+                        </Link>
+                    </div>
+
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Bienvenido de nuevo</h2>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Bienvenido de nuevo</h2>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                             Ingresa tus datos para iniciar sesión
                         </p>
                     </div>
@@ -77,12 +89,12 @@ export default function LoginPage() {
                     <form action={dispatch} className="mt-8 space-y-6">
                         <div className="space-y-4">
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Correo electrónico
                                 </label>
                                 <div className="mt-1 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                        <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                                     </div>
                                     <input
                                         id="email"
@@ -90,7 +102,7 @@ export default function LoginPage() {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition-colors"
+                                        className="appearance-none block w-full pl-10 px-3 py-2.5 border border-slate-300 dark:border-white/10 rounded-xl placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 sm:text-sm bg-white dark:bg-white/5 text-slate-900 dark:text-white transition-all"
                                         placeholder="correo@ejemplo.com"
                                     />
                                 </div>
@@ -98,18 +110,18 @@ export default function LoginPage() {
 
                             <div>
                                 <div className="flex items-center justify-between">
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Contraseña
                                     </label>
                                     <div className="text-sm">
-                                        <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                                        <span className="font-medium text-slate-400 dark:text-slate-500 cursor-not-allowed">
                                             ¿Olvidaste tu contraseña?
-                                        </a>
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="mt-1 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
+                                        <Lock className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                                     </div>
                                     <input
                                         id="password"
@@ -117,12 +129,12 @@ export default function LoginPage() {
                                         type={showPassword ? "text" : "password"}
                                         autoComplete="current-password"
                                         required
-                                        className="appearance-none block w-full pl-10 pr-10 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition-colors"
+                                        className="appearance-none block w-full pl-10 pr-10 px-3 py-2.5 border border-slate-300 dark:border-white/10 rounded-xl placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 sm:text-sm bg-white dark:bg-white/5 text-slate-900 dark:text-white transition-all"
                                         placeholder="••••••••"
                                     />
                                     <button
                                         type="button"
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
                                         onMouseDown={() => setShowPassword(true)}
                                         onMouseUp={() => setShowPassword(false)}
                                         onMouseLeave={() => setShowPassword(false)}
@@ -136,19 +148,19 @@ export default function LoginPage() {
                         </div>
 
                         {errorMessage && (
-                            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-md">
+                            <div className="text-red-600 dark:text-red-400 text-sm text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-200 dark:border-red-800/50">
                                 {errorMessage}
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full flex justify-center py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-lg shadow-blue-500/30">
+                        <Button type="submit" className="w-full flex justify-center py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-lg shadow-blue-600/20 h-12">
                             Iniciar Sesión
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
 
-                        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                        <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
                             ¿No tienes una cuenta?{' '}
-                            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+                            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                                 Crear cuenta
                             </Link>
                         </p>
@@ -159,7 +171,4 @@ export default function LoginPage() {
             <Footer />
         </div>
     )
-}
-function BoxIcon(props: any) {
-    return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
 }

@@ -125,14 +125,15 @@ model CompanyDocument {
 }
 
 model User {
-  id          String      @id @default(cuid())
-  email       String      @unique
-  password    String?
-  name        String?
-  role        Role        @default(BUYER)
-  companyRole CompanyRole @default(OWNER)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String      @id @default(cuid())
+  email               String      @unique
+  password            String?
+  name                String?
+  role                Role        @default(BUYER)
+  companyRole         CompanyRole @default(OWNER)
+  onboardingComplete  Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
   companyId String
   company   Company @relation(fields: [companyId], references: [id])
@@ -272,6 +273,21 @@ model Message {
   rfq        Rfq      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   sender     Company  @relation("SentMessages", fields: [senderId], references: [id])
   receiver   Company  @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   // RFQ_CREATED, BID_SUBMITTED, BID_ACCEPTED, KYC_SUBMITTED, MEMBER_INVITED, etc.
+  description String
+  metadata    Json?    // Extra structured data (rfqId, bidId, etc.)
+  
+  userId      String?
+  companyId   String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([userId, createdAt])
 }
 
 

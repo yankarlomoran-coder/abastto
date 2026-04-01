@@ -84,31 +84,31 @@ export default async function TeamSettingsPage() {
                 {/* Pending Invitations */}
                 {isOwnerOrAdmin && invitations.length > 0 && (
                     <div>
-                        <h3 className="text-lg font-medium text-slate-900 mb-4">Invitaciones Pendientes</h3>
-                        <div className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Invitaciones Pendientes</h3>
+                        <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-slate-900/50 shadow-sm">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50 text-slate-500 font-medium">
+                                <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[0.65rem]">
                                     <tr>
-                                        <th className="px-4 py-3 border-b">Correo Invitado</th>
-                                        <th className="px-4 py-3 border-b">Rol Asignado</th>
-                                        <th className="px-4 py-3 border-b">F. Expiración</th>
-                                        <th className="px-4 py-3 border-b">Acciones</th>
+                                        <th className="px-6 py-4 border-b dark:border-white/5">Correo Invitado</th>
+                                        <th className="px-6 py-4 border-b dark:border-white/5">Rol Asignado</th>
+                                        <th className="px-6 py-4 border-b dark:border-white/5">F. Expiración</th>
+                                        <th className="px-6 py-4 border-b dark:border-white/5">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y">
+                                <tbody className="divide-y dark:divide-white/5">
                                     {invitations.map(inv => (
-                                        <tr key={inv.id} className="hover:bg-slate-50/50">
-                                            <td className="px-4 py-3 text-slate-600">{inv.email}</td>
-                                            <td className="px-4 py-3">
-                                                <Badge variant="outline" className={roleBadgeColor(inv.role)}>
+                                        <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">{inv.email}</td>
+                                            <td className="px-6 py-4">
+                                                <Badge variant="outline" className={`font-bold px-3 py-1 rounded-lg ${roleBadgeColor(inv.role)}`}>
                                                     {inv.role}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-3 text-slate-500">
+                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">
                                                 {new Date(inv.expiresAt).toLocaleDateString()}
-                                                {new Date(inv.expiresAt) < new Date() && <span className="ml-2 text-xs text-red-600 font-semibold">(Expirada)</span>}
+                                                {new Date(inv.expiresAt) < new Date() && <span className="ml-2 text-xs text-red-600 dark:text-red-400 font-bold">(Expirada)</span>}
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-6 py-4">
                                                 <CopyLinkButton token={inv.token} />
                                             </td>
                                         </tr>

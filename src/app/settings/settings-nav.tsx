@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building, Users, ShieldCheck, Palette, ChevronRight } from "lucide-react"
+import { Building, Users, ShieldCheck, Palette, ScrollText, ChevronRight } from "lucide-react"
 
 const navItems = [
     {
@@ -24,6 +24,11 @@ const navItems = [
         name: "Verificación de Identidad",
         href: "/settings/verification",
         icon: ShieldCheck,
+    },
+    {
+        name: "Historial de Actividad",
+        href: "/settings/activity",
+        icon: ScrollText,
     },
 ]
 

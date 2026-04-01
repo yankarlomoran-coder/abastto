@@ -3,6 +3,7 @@
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from '@/lib/activity-log'
 
 export async function uploadKycDocument(formData: FormData) {
     const session = await auth()
@@ -44,6 +45,14 @@ export async function uploadKycDocument(formData: FormData) {
             })
         }
 
+        await logActivity({
+            action: 'DOCUMENT_UPLOADED',
+            description: `Documento ${type} subido para verificación`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { documentType: type }
+        })
+
         revalidatePath('/settings/verification')
         return;
     } catch (error) {
@@ -80,6 +89,13 @@ export async function requestKycReview(formData: FormData) {
                 kycStatus: 'APPROVED',
                 isVerified: true
             }
+        })
+
+        await logActivity({
+            action: 'KYC_SUBMITTED',
+            description: 'Verificación KYC completada — empresa marcada como verificada',
+            userId: session.user.id,
+            companyId: session.user.companyId,
         })
 
         revalidatePath('/settings/verification')

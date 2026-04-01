@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from '@/lib/activity-log'
 
 const ReviewSchema = z.object({
     rfqId: z.string(),
@@ -82,6 +83,14 @@ export async function createReview(prevState: any, data: any) {
                 ratingProfessionalism,
                 comment,
             }
+        })
+
+        await logActivity({
+            action: 'REVIEW_SUBMITTED',
+            description: `Reseña enviada con promedio ${((ratingQuality + ratingPunctuality + ratingCommunication + ratingProfessionalism) / 4).toFixed(1)}/5`,
+            userId: session.user.id,
+            companyId: authorCompanyId,
+            metadata: { rfqId, targetCompanyId, avgRating: (ratingQuality + ratingPunctuality + ratingCommunication + ratingProfessionalism) / 4 }
         })
 
     } catch (error) {

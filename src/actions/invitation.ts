@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
+import { logActivity } from '@/lib/activity-log'
 
 const InviteSchema = z.object({
     email: z.string().email({ message: 'Debe ser un correo electrónico válido.' }),
@@ -80,6 +81,14 @@ export async function createInvitation(prevState: InviteState, formData: FormDat
                 token,
                 expiresAt
             }
+        })
+
+        await logActivity({
+            action: 'MEMBER_INVITED',
+            description: `Invitación enviada a ${email} como ${role}`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { email, role, token }
         })
 
         revalidatePath('/settings/team')

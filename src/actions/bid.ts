@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from '@/lib/activity-log'
 
 const BidItemSchema = z.object({
     rfqItemId: z.string(),
@@ -115,6 +116,14 @@ export async function createBid(prevState: BidState | undefined, data: any) {
             },
         })
 
+        await logActivity({
+            action: 'BID_SUBMITTED',
+            description: `Oferta enviada por Q ${totalAmount.toLocaleString()} en "${rfq.title}"`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { rfqId, totalAmount }
+        })
+
     } catch (error) {
         console.error("Failed to create Bid:", error)
         return {
@@ -145,22 +154,32 @@ export async function acceptBid(bidId: string, rfqId: string) {
 
         // Use transaction to ensure data consistency
         await prisma.$transaction([
-            // Mark the winning bid as ACCEPTED
             prisma.bid.update({
                 where: { id: bidId },
                 data: { status: 'ACCEPTED' }
             }),
-            // Mark all other bids for this RFQ as REJECTED
             prisma.bid.updateMany({
                 where: { rfqId: rfqId, id: { not: bidId } },
                 data: { status: 'REJECTED' }
             }),
-            // Close the RFQ
             prisma.rfq.update({
                 where: { id: rfqId },
                 data: { status: 'CLOSED' }
             })
         ])
+
+        const winningBid = await prisma.bid.findUnique({
+            where: { id: bidId },
+            include: { company: { select: { name: true } } }
+        })
+
+        await logActivity({
+            action: 'BID_ACCEPTED',
+            description: `Oferta de "${winningBid?.company.name}" aceptada por Q ${Number(winningBid?.amount).toLocaleString()}`,
+            userId: session.user.id,
+            companyId: session.user.companyId,
+            metadata: { rfqId, bidId, winnerCompany: winningBid?.company.name }
+        })
 
         revalidatePath(`/rfq/${rfqId}`)
         return { success: true, message: 'Oferta aceptada. Solicitud cerrada.' }

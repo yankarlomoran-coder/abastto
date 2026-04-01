@@ -4,13 +4,26 @@ import { authConfig } from "./auth.config"
 const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
-    // Logic to redirect unauthenticated users from protected routes
-    // For now, just initialize the session check.
     const isLoggedIn = !!req.auth
-    const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard")
+    const { pathname } = req.nextUrl
 
-    if (isOnDashboard && !isLoggedIn) {
-        return Response.redirect(new URL("/login", req.nextUrl))
+    // All routes that require authentication
+    const protectedRoutes = ["/dashboard", "/rfq", "/settings", "/analytics", "/network", "/notifications", "/company"]
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+
+    // Redirect unauthenticated users away from protected routes
+    if (isProtectedRoute && !isLoggedIn) {
+        const loginUrl = new URL("/login", req.nextUrl)
+        loginUrl.searchParams.set("callbackUrl", pathname)
+        return Response.redirect(loginUrl)
+    }
+
+    // Redirect logged-in users away from auth pages
+    const authRoutes = ["/login", "/register"]
+    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
+
+    if (isAuthRoute && isLoggedIn) {
+        return Response.redirect(new URL("/dashboard", req.nextUrl))
     }
 })
 
