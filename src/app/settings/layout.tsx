@@ -36,24 +36,24 @@ export default async function SettingsLayout({
                     {/* Sidebar SidebarNavigation */}
                     <aside className="w-full lg:w-72 flex-shrink-0">
                         <nav className="space-y-2 sticky top-24">
-                            <Link href="/settings" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-900 border dark:border-white/5 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group">
-                                <Building className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                            <Link href="/settings" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group">
+                                <Building className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 transition-colors" />
                                 Perfil de Empresa
                             </Link>
 
-                            <Link href="/settings/appearance" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:border dark:hover:border-white/5 hover:shadow-sm transition-all border border-transparent group">
-                                <Palette className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                            <Link href="/settings/appearance" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:border dark:hover:border-white/10 hover:shadow-sm transition-all border border-transparent group">
+                                <Palette className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 transition-colors" />
                                 Apariencia
                             </Link>
 
-                            <Link href="/settings/team" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:border dark:hover:border-white/5 hover:shadow-sm transition-all border border-transparent group">
-                                <Users className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                            <Link href="/settings/team" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 hover:border dark:hover:border-white/10 hover:shadow-sm transition-all border border-transparent group">
+                                <Users className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 transition-colors" />
                                 Directorio de Equipo
                             </Link>
 
                             <Link href="/settings/verification" className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-400 hover:text-blue-900 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-900 hover:border dark:hover:border-blue-900/20 hover:shadow-sm transition-all border border-transparent group">
-                                <ShieldCheck className="w-4 h-4 text-blue-500" />
-                                Verificación KYC
+                                <ShieldCheck className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                                Verificación de Identidad
                             </Link>
                         </nav>
                     </aside>

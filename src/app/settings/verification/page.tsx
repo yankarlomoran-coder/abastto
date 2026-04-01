@@ -27,33 +27,33 @@ export default async function VerificationPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6 text-blue-500" /> Verificación Legal (KYC)
+                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                    <ShieldCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" /> Verificación de Identidad y Empresa
                 </h2>
-                <p className="text-slate-500 text-sm mt-1">Sube la documentación legal de tu empresa para habilitar las negociaciones B2B formales.</p>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Sube la documentación legal de tu organización para habilitar las gestiones comerciales protegidas.</p>
             </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="p-5 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-2xl flex items-start gap-4">
+                <AlertTriangle className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                    <h4 className="text-sm font-bold text-blue-900">¿Por qué de esto?</h4>
-                    <p className="text-sm text-blue-800/80 mt-1">Abastto es una plataforma de alta confianza. Para poder crear licitaciones o aceptar ofertas grandes, las empresas deben estar homologadas para evitar fraude.</p>
+                    <h4 className="text-sm font-black text-blue-900 dark:text-blue-200 uppercase tracking-widest">Protocolo de Confianza Superior</h4>
+                    <p className="text-sm text-blue-800/80 dark:text-blue-300/80 mt-1 font-medium leading-relaxed">Abastto es una infraestructura de alta integridad. Para realizar licitaciones de gran escala, las entidades deben estar homologadas para garantizar la seguridad jurídica de todas las partes.</p>
                 </div>
             </div>
 
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader>
+            <Card className="border-slate-200 dark:border-white/10 shadow-sm bg-white dark:bg-slate-900 overflow-hidden rounded-3xl transition-colors">
+                <CardHeader className="border-b dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>Estado de Cuenta</CardTitle>
-                            <CardDescription>Resumen de tu homologación corporativa</CardDescription>
+                            <CardTitle className="text-slate-900 dark:text-white font-black">Estado de Homologación</CardTitle>
+                            <CardDescription className="dark:text-slate-400 font-medium italic">Resumen de su validación corporativa</CardDescription>
                         </div>
                         {company.isVerified ? (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">💎 Homologada</Badge>
+                            <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-black px-4 py-1.5 rounded-full">💎 Organización Homologada</Badge>
                         ) : company.kycStatus === 'REVIEW_REQUESTED' ? (
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-200"><Clock className="w-3 h-3 mr-1"/> En Revisión</Badge>
+                            <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800 font-black px-4 py-1.5 rounded-full"><Clock className="w-4 h-4 mr-2"/> Auditoría en Proceso</Badge>
                         ) : (
-                            <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200">Restringida</Badge>
+                            <Badge variant="outline" className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 font-black px-4 py-1.5 rounded-full uppercase tracking-tighter">Acceso Restringido</Badge>
                         )}
                     </div>
                 </CardHeader>
@@ -104,12 +104,12 @@ export default async function VerificationPage() {
 
 function DocUploadCard({ type, title, isUploaded }: { type: string, title: string, isUploaded: boolean }) {
     return (
-        <div className={`p-4 rounded-xl border ${isUploaded ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${isUploaded ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                    <FileText className="w-5 h-5" />
+        <div className={`p-6 rounded-2xl border transition-all duration-300 ${isUploaded ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50' : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 shadow-sm'}`}>
+            <div className="flex items-center gap-4 mb-5">
+                <div className={`p-3 rounded-xl transition-colors ${isUploaded ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
+                    <FileText className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+                <h4 className="text-[0.95rem] font-black text-slate-900 dark:text-white leading-tight">{title}</h4>
             </div>
             
             {isUploaded ? (
@@ -124,10 +124,10 @@ function DocUploadCard({ type, title, isUploaded }: { type: string, title: strin
                         name="url" 
                         required 
                         placeholder="Link a Drive / Dropbox" 
-                        className="w-full text-xs px-3 py-2 border rounded-md outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full text-xs px-4 py-3 border dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-all"
                     />
-                    <Button type="submit" variant="secondary" size="sm" className="w-full text-xs font-semibold h-8 bg-slate-100 hover:bg-slate-200">
-                        <UploadCloud className="w-3 h-3 mr-1" /> Adjuntar Link
+                    <Button type="submit" variant="secondary" size="sm" className="w-full text-xs font-black h-10 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 rounded-xl transition-all">
+                        <UploadCloud className="w-4 h-4 mr-2" /> Vincular Expediente
                     </Button>
                 </form>
             )}

@@ -146,7 +146,7 @@ export default async function DashboardPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400 dark:text-slate-500 group-focus-within:text-blue-600 transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="🔍 Búsqueda rápida de empresas o RFQs..." 
+                                placeholder="🔍 Búsqueda rápida de empresas o Licitaciones..." 
                                 className="w-full bg-slate-100 dark:bg-white/5 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl pl-12 pr-5 py-3 outline-none hover:bg-slate-200 dark:hover:bg-white/10 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-600/20 border-2 border-transparent focus:border-blue-600 transition-all shadow-inner"
                             />
                         </div>
@@ -180,7 +180,7 @@ export default async function DashboardPage() {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 pb-2">
                         <div className="space-y-3">
                             <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none">Resumen Operativo</h1>
-                            <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-2xl">Gestiona tus KPIs financieros y visualiza el estado de tus procesos en tiempo real.</p>
+                            <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-2xl">Gestiona tus indicadores estratégicos y visualiza el estado de tus procesos en tiempo real.</p>
                         </div>
                         {isBuyer && (
                             <Link href="/rfq/create">
@@ -213,7 +213,7 @@ export default async function DashboardPage() {
                         />
                         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-white/5 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                             <div className="flex justify-between items-start mb-6">
-                                <h3 className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">B2B Trust Score</h3>
+                                <h3 className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Calificación de Confianza Comercial</h3>
                                 <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl shadow-inner"><Star className="w-5 h-5" /></div>
                             </div>
                             <div className="flex-1 max-w-full overflow-hidden flex items-end">
@@ -316,12 +316,12 @@ export default async function DashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-slate-900 dark:bg-[#0a0f1c] rounded-2xl border border-white/5 p-8 flex flex-col shadow-2xl relative overflow-hidden group">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/5 p-8 flex flex-col shadow-sm dark:shadow-2xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                                <h2 className="text-sm font-black text-white mb-6 flex items-center gap-2 uppercase tracking-widest relative z-10">
+                                <h2 className="text-sm font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-widest relative z-10">
                                     <Bell className="w-4 h-4 text-blue-500" /> Tareas Hoy
                                 </h2>
-                                <div className="space-y-4 relative z-10">
+                                <div className="space-y-4 relative z-10 text-slate-600 dark:text-slate-400">
                                     {alerts.length > 0 ? (
                                         alerts.map((alert, i) => (
                                             <AlertItem key={i} title={alert.text} vendor={alert.time} status={alert.type === 'danger' ? 'NEW' : 'READ'} date={alert.time} />

@@ -30,17 +30,17 @@ export default async function TeamSettingsPage() {
 
     const roleBadgeColor = (role: string) => {
         switch (role) {
-            case 'OWNER': return 'bg-purple-100 text-purple-800 border-purple-200'
-            case 'ADMIN': return 'bg-blue-100 text-blue-800 border-blue-200'
-            case 'MEMBER': return 'bg-slate-100 text-slate-800 border-slate-200'
-            default: return 'bg-gray-100 text-gray-800'
+            case 'OWNER': return 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800'
+            case 'ADMIN': return 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+            case 'MEMBER': return 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+            default: return 'bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-400'
         }
     }
 
     return (
         <div className="max-w-4xl">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-xl font-semibold text-slate-900">Directorio de Equipo</h2>
+            <div className="flex justify-between items-center mb-6 border-b dark:border-white/5 pb-4">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Directorio de Equipo</h2>
                 {isOwnerOrAdmin && (
                     <InviteMemberModal />
                 )}
@@ -49,28 +49,28 @@ export default async function TeamSettingsPage() {
             <div className="space-y-8">
                 {/* Active Members */}
                 <div>
-                    <h3 className="text-lg font-medium text-slate-900 mb-4">Miembros Activos</h3>
-                    <div className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Miembros Activos</h3>
+                    <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-slate-900/50 shadow-sm">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50 text-slate-500 font-medium">
+                            <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[0.65rem]">
                                 <tr>
-                                    <th className="px-4 py-3 border-b">Nombre</th>
-                                    <th className="px-4 py-3 border-b">Correo Electrónico</th>
-                                    <th className="px-4 py-3 border-b">Rol B2B</th>
-                                    <th className="px-4 py-3 border-b">Poder Interno</th>
+                                    <th className="px-6 py-4 border-b dark:border-white/5">Nombre</th>
+                                    <th className="px-6 py-4 border-b dark:border-white/5">Correo Electrónico</th>
+                                    <th className="px-6 py-4 border-b dark:border-white/5">Rol en la Plataforma</th>
+                                    <th className="px-6 py-4 border-b dark:border-white/5">Jerarquía</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y">
+                            <tbody className="divide-y dark:divide-white/5">
                                 {users.map(user => (
-                                    <tr key={user.id} className="hover:bg-slate-50/50">
-                                        <td className="px-4 py-3 font-medium text-slate-900">
+                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">
                                             {user.name || 'Sin nombre'}
-                                            {user.id === session.user?.id && <span className="ml-2 text-xs text-blue-600 font-semibold">(Tú)</span>}
+                                            {user.id === session.user?.id && <span className="ml-2 text-xs text-blue-600 dark:text-blue-400 font-black tracking-tight">(Tú)</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-600">{user.email}</td>
-                                        <td className="px-4 py-3 text-slate-600 capitalize">{user.role.toLowerCase()}</td>
-                                        <td className="px-4 py-3">
-                                            <Badge variant="outline" className={roleBadgeColor(user.companyRole)}>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">{user.email}</td>
+                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-500 capitalize font-medium">{user.role.toLowerCase()}</td>
+                                        <td className="px-6 py-4">
+                                            <Badge variant="outline" className={`font-bold px-3 py-1 rounded-lg ${roleBadgeColor(user.companyRole)}`}>
                                                 {user.companyRole}
                                             </Badge>
                                         </td>
