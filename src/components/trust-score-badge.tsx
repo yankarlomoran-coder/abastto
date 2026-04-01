@@ -19,8 +19,8 @@ export async function TrustScoreBadge({ companyId, className = "" }: { companyId
 
     if (count === 0) {
         return (
-            <Badge variant="secondary" className={`text-slate-500 bg-slate-100 ${className}`}>
-                Sin Calificaciones B2B
+            <Badge variant="outline" className={`text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 px-3 py-1 rounded-full font-medium ${className}`}>
+                Sin Calificaciones Comerciales
             </Badge>
         )
     }
