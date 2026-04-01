@@ -135,13 +135,21 @@ export default async function RfqListPage({
                         ))}
                     </div>
 
-                    {/* Category filter */}
+                    {/* Category filter - uses link-based navigation */}
                     {isBuyer && (
-                        <select
-                            value={categoryFilter}
-                            onChange={() => {}}
-                            className="hidden"
-                        />
+                        <div className="flex items-center gap-1 flex-wrap">
+                            {['ALL', 'TECH', 'OFFICE', 'CONSTRUCTION', 'SERVICES', 'OTHER'].map(cat => (
+                                <Link key={cat} href={buildUrl({ category: cat, page: '1' })}>
+                                    <button className={`px-3 py-1.5 text-[0.7rem] font-bold rounded-lg border transition-all cursor-pointer ${
+                                        categoryFilter === cat
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-800'
+                                    }`}>
+                                        {cat === 'ALL' ? 'Todas' : CATEGORY_LABELS[cat] || cat}
+                                    </button>
+                                </Link>
+                            ))}
+                        </div>
                     )}
                 </div>
 

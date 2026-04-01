@@ -147,16 +147,28 @@ export default async function NetworkPage({
                             </button>
                         </Link>
 
-                        <select
-                            defaultValue={industryFilter}
-                            onChange={(e) => { window.location.href = buildUrl({ industry: e.target.value }) }}
-                            className="bg-white dark:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-white/10 px-3 py-1.5 cursor-pointer outline-none"
-                        >
-                            <option value="ALL">Todas las industrias</option>
-                            {Object.entries(INDUSTRY_LABELS).map(([value, label]) => (
-                                <option key={value} value={value}>{label}</option>
+                        <div className="flex items-center gap-1 flex-wrap">
+                            <Link href={buildUrl({ industry: 'ALL' })}>
+                                <button className={`px-3 py-1.5 text-[0.7rem] font-bold rounded-lg border transition-all cursor-pointer ${
+                                    industryFilter === 'ALL'
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-800'
+                                }`}>
+                                    Todas
+                                </button>
+                            </Link>
+                            {Object.entries(INDUSTRY_LABELS).slice(0, 5).map(([value, label]) => (
+                                <Link key={value} href={buildUrl({ industry: value })}>
+                                    <button className={`px-3 py-1.5 text-[0.7rem] font-bold rounded-lg border transition-all cursor-pointer ${
+                                        industryFilter === value
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-800'
+                                    }`}>
+                                        {label}
+                                    </button>
+                                </Link>
                             ))}
-                        </select>
+                        </div>
                     </div>
                 </div>
 
