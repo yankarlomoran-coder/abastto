@@ -3,17 +3,22 @@ import prisma from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { CalendarIcon, DollarSign, Clock, CalendarDays, FileText, CheckCircle2, User, Building2, PackageIcon, AlertCircle, ArrowLeft, ShieldCheck, Download, ChevronRight, Inbox } from "lucide-react"
+import { CalendarIcon, DollarSign, Clock, CalendarDays, FileText, CheckCircle2, User, Building2, PackageIcon, AlertCircle, ShieldCheck, Download, ChevronRight, Inbox } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import BidForm from "./bid-form"
 import AcceptBidButton from "./accept-bid-button"
 import OfferAnalysis from "./offer-analysis"
 import QaSection from "./qa-section"
+import BidComparator from "./bid-comparator"
 import { PoDownloadButton } from "@/components/pdf/po-download-button"
 import ReviewForm from "./review-form"
 import { TrustScoreBadge } from "@/components/trust-score-badge"
+import { SupplierMetricsPanel } from "@/components/supplier-metrics-panel"
+import { ExportBidsButton } from "@/components/export-buttons"
 import ApproveRfqButton from "./approve-rfq-button"
+import { RfqTimeline } from "@/components/rfq/rfq-timeline"
+import { DeliveryActions } from "@/components/rfq/delivery-actions"
 
 export default async function RfqDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params
@@ -73,24 +78,32 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
     const acceptedBid = rfq.bids.find(b => b.status === 'ACCEPTED')
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 selection:bg-blue-100 dark:selection:bg-blue-900/30 relative overflow-hidden font-sans transition-colors duration-500">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-[-10%] right-[-5%] w-[800px] h-[800px] bg-gradient-to-bl from-[#dae2fd]/40 to-transparent rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute top-[40%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-tr from-[#eceef0]/60 to-transparent rounded-full blur-[90px] pointer-events-none"></div>
-
-            <div className="max-w-[1400px] mx-auto p-6 lg:p-12 relative z-10">
-                {/* Header / Navigation */}
-                <header className="flex items-center gap-4 mb-10">
-                    <Link href="/dashboard" className="group flex items-center justify-center w-11 h-11 rounded-full bg-white border border-[#e0e3e5] shadow-sm hover:shadow-md hover:border-[#c6c6cd] transition-all">
-                        <ArrowLeft className="w-5 h-5 text-[#545f73] group-hover:text-[#131b2e] transition-colors" />
-                    </Link>
-                    <div>
-                        <p className="text-[0.7rem] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.1em] mb-0.5">Gestión Comercial</p>
-                        <h2 className="text-slate-900 dark:text-white font-semibold flex items-center gap-2 text-sm">
-                            <span className="text-slate-500 dark:text-slate-400">Abastto Profesional</span> <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" /> Ficha Técnica de Licitación
-                        </h2>
-                    </div>
+        <div className="flex-1 p-6 md:p-10 xl:p-14 max-w-[1400px] w-full mx-auto">
+                {/* Page Title */}
+                <header className="mb-10">
+                    <p className="text-[0.7rem] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.1em] mb-0.5">Gestión Comercial</p>
+                    <h2 className="text-slate-900 dark:text-white font-semibold flex items-center gap-2 text-sm">
+                        <span className="text-slate-500 dark:text-slate-400">Abastto Profesional</span> <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" /> Ficha Técnica de Licitación
+                    </h2>
                 </header>
+
+                {/* Timeline */}
+                <div className="mb-8">
+                    <RfqTimeline
+                        rfqStatus={effectiveStatus}
+                        createdAt={rfq.createdAt}
+                        deadline={rfq.deadline}
+                        deliveryConfirmedAt={rfq.deliveryConfirmedAt}
+                        isBuyer={role === 'BUYER'}
+                    />
+                </div>
+
+                {/* Delivery Actions */}
+                {(effectiveStatus === 'PENDING_DELIVERY' || effectiveStatus === 'DELIVERED') && (
+                    <div className="mb-8">
+                        <DeliveryActions rfqId={rfq.id} status={effectiveStatus} isBuyer={role === 'BUYER'} />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 xl:gap-12 items-start">
                     
@@ -110,6 +123,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                 <div className="shrink-0 pt-2">
                                     {effectiveStatus === 'OPEN' && <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-sm font-bold tracking-wide rounded-md shadow-lg shadow-emerald-600/20">● BÚSQUEDA ACTIVA</Badge>}
                                     {effectiveStatus === 'EVALUATING' && <Badge className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 text-sm font-bold tracking-wide rounded-md shadow-lg shadow-amber-500/20">● EN EVALUACIÓN</Badge>}
+                                    {effectiveStatus === 'PENDING_DELIVERY' && <Badge className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 text-sm font-bold tracking-wide rounded-md shadow-lg shadow-orange-500/20">● ENTREGA PENDIENTE</Badge>}
+                                    {effectiveStatus === 'DELIVERED' && <Badge className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-1.5 text-sm font-bold tracking-wide rounded-md shadow-lg shadow-teal-500/20">✓ ENTREGADA</Badge>}
                                     {effectiveStatus === 'CLOSED' && <Badge className="bg-slate-800 dark:bg-slate-700 text-white px-4 py-1.5 text-sm font-bold tracking-wide rounded-md">CERRADA</Badge>}
                                     {effectiveStatus === 'DRAFT_PENDING_APPROVAL' && <Badge className="bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 px-4 py-1.5 text-sm font-bold tracking-wide rounded-md border border-slate-200 dark:border-white/10">ESPERANDO APROBACIÓN</Badge>}
                                 </div>
@@ -296,8 +311,20 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         </div>
                                     )}
 
-                                    {effectiveStatus === 'CLOSED' && acceptedBid && !hasReviewed && (
-                                        <div className="mt-12 bg-white rounded-[16px] border border-[#eceef0] shadow-sm overflow-hidden">
+                                    {/* Bid Comparator Table */}
+                                    {rfq.bids.length >= 2 && isPastDeadline && (
+                                        <BidComparator bids={rfq.bids as any} budget={Number(rfq.budget)} />
+                                    )}
+
+                                    {/* Export Bids */}
+                                    {rfq.bids.length > 0 && isPastDeadline && (
+                                        <div className="mt-4 flex justify-end">
+                                            <ExportBidsButton rfqId={rfq.id} rfqTitle={rfq.title} />
+                                        </div>
+                                    )}
+
+                                    {['DELIVERED', 'CLOSED'].includes(effectiveStatus) && acceptedBid && !hasReviewed && (
+                                        <div className="mt-12 bg-white dark:bg-slate-900 rounded-[16px] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
                                             <ReviewForm 
                                                 rfqId={rfq.id} 
                                                 targetCompanyId={acceptedBid.companyId} 
@@ -305,8 +332,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                             />
                                         </div>
                                     )}
-                                    {effectiveStatus === 'CLOSED' && hasReviewed && (
-                                        <div className="mt-10 p-6 bg-[#f0fdf4] text-[#059669] rounded-[16px] border border-[#bbf7d0] text-center font-bold flex items-center justify-center gap-3 shadow-inner">
+                                    {['DELIVERED', 'CLOSED'].includes(effectiveStatus) && hasReviewed && (
+                                        <div className="mt-10 p-6 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 rounded-[16px] border border-emerald-200 dark:border-emerald-800/30 text-center font-bold flex items-center justify-center gap-3 shadow-inner">
                                             <CheckCircle2 className="w-6 h-6" /> Proceso Auditado. Proveedor Calificado.
                                         </div>
                                     )}
@@ -422,8 +449,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                     </div>
                                 )}
 
-                                {effectiveStatus === 'CLOSED' && supplierBid?.status === 'ACCEPTED' && !hasReviewed && (
-                                    <div className="mt-12 bg-white rounded-[16px] border border-[#eceef0] shadow-sm overflow-hidden p-2">
+                                {['DELIVERED', 'CLOSED'].includes(effectiveStatus) && supplierBid?.status === 'ACCEPTED' && !hasReviewed && (
+                                    <div className="mt-12 bg-white dark:bg-slate-900 rounded-[16px] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden p-2">
                                         <ReviewForm 
                                             rfqId={rfq.id} 
                                             targetCompanyId={rfq.companyId} 
@@ -431,8 +458,8 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                         />
                                     </div>
                                 )}
-                                {effectiveStatus === 'CLOSED' && supplierBid?.status === 'ACCEPTED' && hasReviewed && (
-                                    <div className="p-6 bg-[#f0fdf4] text-[#059669] rounded-[16px] border border-[#bbf7d0] text-center font-bold flex items-center justify-center gap-3 shadow-inner">
+                                {['DELIVERED', 'CLOSED'].includes(effectiveStatus) && supplierBid?.status === 'ACCEPTED' && hasReviewed && (
+                                    <div className="p-6 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 rounded-[16px] border border-emerald-200 dark:border-emerald-800/30 text-center font-bold flex items-center justify-center gap-3 shadow-inner">
                                         <CheckCircle2 className="w-6 h-6" /> Usted ya calificó al comprador en esta transacción.
                                     </div>
                                 )}
@@ -446,9 +473,15 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                         <div className="bg-white dark:bg-slate-900 rounded-[24px] p-8 shadow-sm dark:shadow-2xl border border-slate-200 dark:border-white/10 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-[30px] -mr-10 -mt-10"></div>
                             <p className="text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] mb-2 relative z-10">Asignación Presupuestaria</p>
-                            <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter relative z-10 flex items-center gap-2">
-                                <span className="text-2xl text-slate-400 dark:text-slate-600 font-medium">Q</span> {Number(rfq.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
+                            {role === 'BUYER' ? (
+                                <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter relative z-10 flex items-center gap-2">
+                                    <span className="text-2xl text-slate-400 dark:text-slate-600 font-medium">Q</span> {Number(rfq.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                            ) : (
+                                <p className="text-sm font-bold text-slate-400 dark:text-slate-500 italic relative z-10">
+                                    Información confidencial del comprador
+                                </p>
+                            )}
                         </div>
 
                         {/* Timing Block */}
@@ -498,9 +531,13 @@ export default async function RfqDetailPage({ params }: { params: Promise<{ id: 
                                 </div>
                             </div>
                         </div>
+
+                        {/* Supplier Metrics - shown when a bid is accepted */}
+                        {acceptedBid && (
+                            <SupplierMetricsPanel companyId={acceptedBid.companyId} />
+                        )}
                     </div>
                 </div>
-            </div>
         </div>
     )
 }

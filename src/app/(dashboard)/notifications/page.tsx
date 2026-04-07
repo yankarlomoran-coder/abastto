@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
-import { BellRing, ArrowLeft, CheckCircle2, AlertTriangle, Clock, Inbox } from "lucide-react"
+import { BellRing, CheckCircle2, AlertTriangle, Clock, Inbox } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { redirect } from "next/navigation"
@@ -80,7 +80,7 @@ export default async function NotificationsPage() {
             notifications.push({
                 id: `new-${rfq.id}`,
                 title: `Nueva oportunidad disponible`,
-                description: `${rfq.company.name} publicó "${rfq.title}" — Presupuesto: Q ${Number(rfq.budget).toLocaleString()}`,
+                description: `${rfq.company.name} publicó "${rfq.title}" — Nueva oportunidad disponible`,
                 time: timeAgo(rfq.createdAt),
                 type: 'info',
                 read: false
@@ -96,15 +96,11 @@ export default async function NotificationsPage() {
     })
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#030712] p-4 sm:p-8 transition-colors duration-500">
-            <div className="max-w-[800px] mx-auto">
+        <div className="flex-1 p-6 md:p-10 xl:p-14 max-w-[800px] w-full mx-auto">
                 <header className="flex items-center gap-4 mb-8">
-                    <Link href="/dashboard" className="p-2 hover:bg-slate-200 dark:hover:bg-white/5 rounded-full transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    </Link>
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Centro de Notificaciones</h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">Alertas y actualizaciones de tus procesos de negocio</p>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium">Alertas y actualizaciones de tus procesos</p>
                     </div>
                 </header>
 
@@ -151,7 +147,6 @@ export default async function NotificationsPage() {
                         </div>
                     )}
                 </div>
-            </div>
         </div>
     )
 }

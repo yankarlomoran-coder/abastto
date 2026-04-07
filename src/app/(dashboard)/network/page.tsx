@@ -1,48 +1,11 @@
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import Link from "next/link"
-import { ArrowLeft, Search, Building2, MapPin, Shield, ShieldCheck, Star, Users, Filter } from "lucide-react"
+import { Search, Building2, MapPin, ShieldCheck, Star, Users, Filter } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
-
-const INDUSTRY_LABELS: Record<string, string> = {
-    AGRICULTURA: 'Agricultura',
-    CONSTRUCCION: 'Construcción',
-    ESTADO_GOBIERNO: 'Estado / Gobierno',
-    MANUFACTURA: 'Manufactura',
-    MEDICAL_SALUD: 'Salud',
-    RETAIL_COMERCIO: 'Retail / Comercio',
-    SERVICIOS_PROFESIONALES: 'Servicios Profesionales',
-    TECNOLOGIA: 'Tecnología',
-    TRANSPORTE_LOGISTICA: 'Transporte / Logística',
-    OTRO: 'Otro',
-}
-
-const LOCATION_LABELS: Record<string, string> = {
-    GUATEMALA: 'Guatemala',
-    QUETZALTENANGO: 'Quetzaltenango',
-    ESCUINTLA: 'Escuintla',
-    SACATEPEQUEZ: 'Sacatepéquez',
-    ALTA_VERAPAZ: 'Alta Verapaz',
-    BAJA_VERAPAZ: 'Baja Verapaz',
-    CHIMALTENANGO: 'Chimaltenango',
-    CHIQUIMULA: 'Chiquimula',
-    EL_PROGRESO: 'El Progreso',
-    HUEHUETENANGO: 'Huehuetenango',
-    IZABAL: 'Izabal',
-    JALAPA: 'Jalapa',
-    JUTIAPA: 'Jutiapa',
-    PETEN: 'Petén',
-    QUICHE: 'Quiché',
-    RETALHULEU: 'Retalhuleu',
-    SAN_MARCOS: 'San Marcos',
-    SANTA_ROSA: 'Santa Rosa',
-    SOLOLA: 'Sololá',
-    SUCHITEPEQUEZ: 'Suchitepéquez',
-    TOTONICAPAN: 'Totonicapán',
-    ZACAPA: 'Zacapa',
-}
+import { INDUSTRY_LABELS, LOCATION_LABELS } from "@/lib/constants"
 
 export default async function NetworkPage({
     searchParams
@@ -106,17 +69,11 @@ export default async function NetworkPage({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#030712] p-4 sm:p-8 transition-colors duration-500">
-            <div className="max-w-[1200px] mx-auto">
+        <div className="flex-1 p-6 md:p-10 xl:p-14 max-w-[1200px] w-full mx-auto">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="p-2 hover:bg-slate-200 dark:hover:bg-white/5 rounded-full transition-colors">
-                            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Red de Proveedores</h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Descubre y conecta con empresas verificadas en la plataforma</p>
-                        </div>
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Red de Empresas</h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Descubre y conecta con empresas verificadas en la plataforma</p>
                     </div>
                 </header>
 
@@ -242,7 +199,6 @@ export default async function NetworkPage({
                         ))}
                     </div>
                 )}
-            </div>
         </div>
     )
 }

@@ -1,27 +1,13 @@
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import Link from "next/link"
-import { Plus, ArrowLeft, Clock, Inbox, ChevronLeft, ChevronRight, Filter } from "lucide-react"
+import { Plus, Clock, Inbox, ChevronLeft, ChevronRight, Filter } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { STATUS_LABELS, CATEGORY_LABELS } from "@/lib/constants"
+import { ExportRfqsButton } from "@/components/export-buttons"
 
 const ITEMS_PER_PAGE = 10
-
-const STATUS_LABELS: Record<string, { label: string; class: string }> = {
-    OPEN: { label: 'ABIERTA', class: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/50' },
-    EVALUATING: { label: 'EVALUANDO', class: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/50' },
-    CLOSED: { label: 'CERRADA', class: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent' },
-    AWARDED: { label: 'ADJUDICADA', class: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50' },
-    DRAFT_PENDING_APPROVAL: { label: 'PENDIENTE', class: 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-900/50' },
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-    TECH: 'Tecnología y Equipo',
-    OFFICE: 'Suministros de Oficina',
-    CONSTRUCTION: 'Construcción y Materiales',
-    SERVICES: 'Servicios Profesionales',
-    OTHER: 'Otro',
-}
 
 export default async function RfqListPage({
     searchParams
@@ -83,24 +69,21 @@ export default async function RfqListPage({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#030712] p-4 sm:p-8 transition-colors duration-500">
-            <div className="max-w-[1200px] mx-auto">
+        <div className="flex-1 p-6 md:p-10 xl:p-14 max-w-[1200px] w-full mx-auto">
                 <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="p-2 hover:bg-slate-200 dark:hover:bg-white/5 rounded-full transition-colors">
-                            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isBuyer ? 'Mis Licitaciones' : 'Oportunidades de Venta'}</h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">{totalCount} registro{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}</p>
-                        </div>
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isBuyer ? 'Mis Licitaciones' : 'Oportunidades de Venta'}</h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">{totalCount} registro{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}</p>
                     </div>
                     {isBuyer && (
-                        <Link href="/rfq/create">
-                            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-6 rounded-xl shadow-lg shadow-blue-600/20">
-                                <Plus className="w-4 h-4 mr-2" /> Crear Licitación
-                            </Button>
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <ExportRfqsButton />
+                            <Link href="/rfq/create">
+                                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-6 rounded-xl shadow-lg shadow-blue-600/20">
+                                    <Plus className="w-4 h-4 mr-2" /> Crear Licitación
+                                </Button>
+                            </Link>
+                        </div>
                     )}
                 </header>
 
@@ -216,7 +199,7 @@ export default async function RfqListPage({
                                                     </Badge>
                                                 </td>
                                                 <td className="px-6 sm:px-8 py-5 text-right font-black text-slate-900 dark:text-white tabular-nums">
-                                                    {isBuyer ? `${rfq._count.bids} oferta${rfq._count.bids !== 1 ? 's' : ''}` : `Q ${Number(rfq.budget).toLocaleString()}`}
+                                                    {isBuyer ? `${rfq._count.bids} oferta${rfq._count.bids !== 1 ? 's' : ''}` : 'Ver detalles'}
                                                 </td>
                                                 <td className="px-6 sm:px-8 py-5 text-right">
                                                     <Link href={`/rfq/${rfq.id}`}>
@@ -292,7 +275,6 @@ export default async function RfqListPage({
                         </div>
                     )}
                 </div>
-            </div>
         </div>
     )
 }

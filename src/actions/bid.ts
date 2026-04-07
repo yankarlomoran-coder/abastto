@@ -164,7 +164,10 @@ export async function acceptBid(bidId: string, rfqId: string) {
             }),
             prisma.rfq.update({
                 where: { id: rfqId },
-                data: { status: 'CLOSED' }
+                data: {
+                    status: 'PENDING_DELIVERY',
+                    awardedBidId: bidId,
+                }
             })
         ])
 
@@ -175,14 +178,14 @@ export async function acceptBid(bidId: string, rfqId: string) {
 
         await logActivity({
             action: 'BID_ACCEPTED',
-            description: `Oferta de "${winningBid?.company.name}" aceptada por Q ${Number(winningBid?.amount).toLocaleString()}`,
+            description: `Oferta de "${winningBid?.company.name}" aceptada por Q ${Number(winningBid?.amount).toLocaleString()}. Entrega pendiente.`,
             userId: session.user.id,
             companyId: session.user.companyId,
             metadata: { rfqId, bidId, winnerCompany: winningBid?.company.name }
         })
 
         revalidatePath(`/rfq/${rfqId}`)
-        return { success: true, message: 'Oferta aceptada. Solicitud cerrada.' }
+        return { success: true, message: 'Oferta aceptada. La entrega está pendiente de confirmación.' }
     } catch (error) {
         console.error("Failed to accept Bid:", error)
         return { success: false, message: 'Error al aceptar la oferta.' }

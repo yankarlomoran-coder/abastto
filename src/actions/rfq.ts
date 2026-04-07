@@ -50,7 +50,7 @@ export async function createRfq(prevState: State | undefined, data: any) {
     })
 
     if (!company?.isVerified) {
-        return { message: 'Acceso corporativo denegado: Tu empresa aún no está homologada (KYC). Sube tu papelería legal en Ajustes.' }
+        return { message: 'Acceso corporativo denegado: Tu empresa aún no está verificada. Sube la documentación legal requerida en Ajustes → Verificación.' }
     }
 
     const validatedFields = RfqSchema.safeParse(data)
@@ -66,8 +66,10 @@ export async function createRfq(prevState: State | undefined, data: any) {
 
     const { title, description, budget, deadline, deliveryLocation, paymentTerms, category, items } = validatedFields.data
 
-    // Forzamos que toda nueva solicitud nazca en revisión gerencial para el flujo B2B
-    const initialStatus = 'DRAFT_PENDING_APPROVAL';
+    // Auto-aprobación: OWNER y ADMIN publican directamente. MEMBER y VIEWER requieren aprobación jerárquica.
+    const companyRole = (session.user as any).companyRole || 'MEMBER'
+    const requiresApproval = companyRole !== 'OWNER' && companyRole !== 'ADMIN'
+    const initialStatus = requiresApproval ? 'DRAFT_PENDING_APPROVAL' : 'OPEN'
     
     try {
         const rfq = await (prisma as any).rfq.create({
@@ -81,7 +83,8 @@ export async function createRfq(prevState: State | undefined, data: any) {
                 category,
                 companyId: session.user.companyId,
                 status: initialStatus,
-                needsApproval: true,
+                needsApproval: requiresApproval,
+                approvedById: requiresApproval ? null : session.user.id,
                 items: {
                     create: items.map(item => ({
                         name: item.name,

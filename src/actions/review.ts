@@ -39,8 +39,8 @@ export async function createReview(prevState: any, data: any) {
             include: { bids: true }
         })
 
-        if (!rfq || rfq.status !== 'CLOSED') {
-            return { success: false, message: 'La Solicitud debe estar Cerrada/Adjudicada para poder evaluar.' }
+        if (!rfq || !['DELIVERED', 'CLOSED'].includes(rfq.status)) {
+            return { success: false, message: 'La entrega debe estar confirmada antes de poder evaluar.' }
         }
 
         // Check if there is already a review

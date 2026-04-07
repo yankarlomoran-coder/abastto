@@ -64,8 +64,10 @@ enum RfqStatus {
   DRAFT_PENDING_APPROVAL
   OPEN
   EVALUATING
-  CLOSED
   AWARDED
+  PENDING_DELIVERY
+  DELIVERED
+  CLOSED
 }
 
 enum BidStatus {
@@ -157,6 +159,11 @@ model Rfq {
 
   companyId String
   company   Company @relation(fields: [companyId], references: [id])
+
+  // Delivery tracking
+  awardedBidId         String?
+  deliveryConfirmedAt  DateTime?
+  deliveryConfirmedBy  String?
 
   bids      Bid[]
   items     RfqItem[]

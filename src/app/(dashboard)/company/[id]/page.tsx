@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SupplierMetricsPanel } from "@/components/supplier-metrics-panel"
 
 const INDUSTRY_LABELS: Record<string, string> = {
     AGRICULTURA: 'Agricultura', CONSTRUCCION: 'Construcción', ESTADO_GOBIERNO: 'Estado / Gobierno',
@@ -133,7 +134,7 @@ export default async function CompanyProfilePage({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-white/5">
                         <div className="text-center">
                             <p className={`text-3xl font-black ${scoreColor}`}>{trustScore || '—'}</p>
-                            <p className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">Trust Score</p>
+                            <p className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">Índice de Confianza</p>
                         </div>
                         <div className="text-center">
                             <p className="text-3xl font-black text-slate-900 dark:text-white">{company._count.receivedReviews}</p>
@@ -257,7 +258,7 @@ export default async function CompanyProfilePage({
                                     <span className="font-bold text-slate-900 dark:text-white">{company.nit}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Estado KYC</span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium">Verificación</span>
                                     <Badge variant="outline" className={`text-[0.6rem] font-bold px-2 ${
                                         company.kycStatus === 'APPROVED'
                                             ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
@@ -270,6 +271,9 @@ export default async function CompanyProfilePage({
                                 </div>
                             </div>
                         </div>
+
+                        {/* Supplier Performance Metrics */}
+                        <SupplierMetricsPanel companyId={company.id} />
                     </div>
                 </div>
             </div>
